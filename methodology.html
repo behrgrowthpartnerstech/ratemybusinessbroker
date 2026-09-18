@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Our Methodology | The Broker Index — RateMyBusinessBroker.com</title>
+<meta name="description" content="Exactly how The Broker Index scores and ranks M&A business brokers: six parameters, reviewer weighting, recency decay, Bayesian shrinkage, confidence labels, and anti-gaming protections.">
+<link rel="canonical" href="https://ratemybusinessbroker.com/methodology.html">
+<link rel="icon" type="image/png" href="/favicon.png">
+<meta property="og:title" content="Our Methodology — The Broker Index">
+<meta property="og:description" content="Exactly how broker scores and rankings are computed — the same published math for every broker.">
+<meta property="og:url" content="https://ratemybusinessbroker.com/methodology.html">
+<meta property="og:image" content="https://ratemybusinessbroker.com/favicon.png">
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-KTQ1BWRBJC"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-KTQ1BWRBJC');</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,650&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/blog/_shared.css">
+</head>
+<body>
+
+<header>
+  <div class="wrap hbar">
+    <a class="brand" href="/"><span class="mark">B</span><b>The Broker Index</b></a>
+    <span class="hspace"></span>
+    <a class="hbtn" href="/blog/">Articles</a>
+    <a class="hbtn" href="/about.html">About</a>
+    <a class="hbtn solid" href="/">Browse brokers</a>
+  </div>
+</header>
+
+<article>
+  <div class="crumb"><a href="/">Home</a> › Methodology</div>
+  <h1>How broker scores and rankings are computed</h1>
+  <p>Every broker on The Broker Index is scored by the same published process, from the same inputs: reviews left by members who worked with them. Nothing on this page can be bought, and nothing about a specific broker changes it. Here is the whole system.</p>
+
+  <h2>The six parameters</h2>
+  <p>Reviewers rate a broker from 1 to 5 on any of six parameters they experienced first-hand (they're asked to skip ones they can't judge):</p>
+  <ul>
+    <li><strong>Professionalism</strong> — responsive, prepared, respectful of your time and confidentiality.</li>
+    <li><strong>Transparency</strong> — honest about fees, valuation, buyer interest, and problems.</li>
+    <li><strong>Consistency</strong> — the story and the effort at closing matched the story and effort at the pitch.</li>
+    <li><strong>Collaboration</strong> — worked with you, your accountant, and your attorney, not around them.</li>
+    <li><strong>Command of the deal</strong> — ran a real process: qualified buyers, kept diligence moving, held the deal together.</li>
+    <li><strong>Quality of documentation</strong> — CIMs, recast financials, and paperwork that stood up to buyer and lender scrutiny.</li>
+  </ul>
+  <p>A review's <strong>overall score</strong> is the average of the parameters its author rated.</p>
+
+  <h2>How reviews are weighted</h2>
+  <p>Not all reviews carry equal weight, and the differences are deliberate:</p>
+  <ul>
+    <li><strong>Verified reviewers count roughly twice as much.</strong> Members who verify a real transaction carry a weight of 1.0; unverified members carry 0.55. Verification exists so that the scores lean hardest on people we're most confident actually did a deal.</li>
+    <li><strong>Recent experience counts more.</strong> Review weight decays with age, halving every 18 months. A broker's score reflects who they are now, not who they were in 2019 — and improvement is genuinely possible.</li>
+  </ul>
+
+  <h2>From reviews to a broker's displayed score</h2>
+  <p>A broker's <strong>raw score</strong> is the weighted average of their reviews' overalls. But raw averages are fragile at small sample sizes — one review would equal a perfect 5.0 — so the <strong>displayed score</strong> applies Bayesian shrinkage: it blends the broker's raw score with the site-wide average, with the blend controlled by how much total review weight the broker has accumulated. Formally: <em>displayed = (W·raw + M·prior) / (W + M)</em>, where W is the broker's total review weight, the prior is the site-wide weighted mean, and M = 2.5.</p>
+  <p>In plain English: <strong>new brokers can't rocket to #1 on one five-star review, and an established broker can't be destroyed by one angry outlier.</strong> As real evidence accumulates, the displayed score converges to the raw score.</p>
+
+  <h2>Confidence labels</h2>
+  <p>Next to every score you'll see how much evidence stands behind it, based on total accumulated review weight: <strong>Provisional</strong> (limited evidence), <strong>Early</strong> (a developing record), and <strong>Established</strong> (a substantial record). Brokers with no reviews show "No reviews yet" and no score at all — a listing is not a rating.</p>
+
+  <h2>Ranking order</h2>
+  <p>The default "Top rated" ordering sorts by displayed score, then by total evidence weight, then review count, then name. Brokers without reviews appear after rated brokers and carry no rank number.</p>
+
+  <h2>Anti-gaming and moderation</h2>
+  <ul>
+    <li><strong>One review per broker per member</strong> — editable as your experience evolves, never stackable.</li>
+    <li><strong>Accounts are required</strong> to review, and verification (with roughly double weight) means farms of fresh anonymous accounts move rankings very little.</li>
+    <li><strong>Every review can be reported.</strong> Reports go to human moderation; reviews that are off-topic, abusive, not first-hand, or aimed at the wrong broker are removed. Removals are logged.</li>
+    <li><strong>Brokers can respond.</strong> A broker who disputes a review can flag it for moderation review; we look at whether the review reflects a first-hand client experience, not whether the broker likes it.</li>
+    <li><strong>No financial relationship affects any of the above.</strong> The Broker Index does not accept payment from brokers for listings, rankings, review removal, or anything else that touches scores.</li>
+  </ul>
+
+  <h2>Directory data and corrections</h2>
+  <p>Listing details (name, firm, location, specialty, contact links) are compiled from publicly available professional directory information and member listing requests, as described on our <a href="/about.html">About page</a>. Errors happen; brokers and members can flag outdated details via the request form on the <a href="/">home page</a> and we correct them. Corrections to listing details never touch review scores.</p>
+
+  <h2>Changes to this methodology</h2>
+  <p>If the scoring system changes materially — weights, decay, shrinkage, or moderation rules — this page changes with it, and the change applies identically to every broker. The methodology you can read is always the methodology that's running.</p>
+
+  <div class="cta">
+    <h4>See it in action</h4>
+    <p>Open any broker's profile to see their parameter breakdown, review history, and confidence label.</p>
+    <a href="/">Browse the directory →</a>
+  </div>
+</article>
+
+<footer>
+  <div class="wrap">
+    <p><a href="/">The Broker Index</a> · <a href="/about.html">About</a> · <a href="/blog/">Articles</a> — Independent ratings and reviews of M&amp;A business brokers.</p>
+  </div>
+</footer>
+</body>
+</html>
