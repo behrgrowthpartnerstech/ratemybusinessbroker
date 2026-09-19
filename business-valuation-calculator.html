@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Free Business Valuation Calculator (SDE × Multiple) | The Broker Index</title>
+<meta name="description" content="Estimate what your business is worth in 60 seconds: SDE with add-backs, industry multiples from real 2026 sale data, and an SBA loan DSCR check — free, no email required.">
+<link rel="canonical" href="https://ratemybusinessbroker.com/business-valuation-calculator.html">
+<link rel="icon" type="image/png" href="/favicon.png">
+<meta property="og:title" content="Free Business Valuation Calculator — The Broker Index">
+<meta property="og:description" content="SDE, add-backs, industry multiples, and an SBA-loan DSCR sanity check. Free, no email required.">
+<meta property="og:url" content="https://ratemybusinessbroker.com/business-valuation-calculator.html">
+<meta property="og:image" content="https://ratemybusinessbroker.com/favicon.png">
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-KTQ1BWRBJC"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-KTQ1BWRBJC');</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,650&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/_shared.css">
+<style>
+.calc{background:var(--card);border:1px solid var(--line2);border-radius:16px;padding:22px;margin:26px 0;box-shadow:0 1px 2px rgba(16,28,44,.06),0 10px 28px -14px rgba(16,28,44,.18)}
+.calc h5{font-size:11.5px;letter-spacing:.7px;text-transform:uppercase;color:var(--mut);margin-bottom:10px}
+.frow{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:9px 0;border-bottom:1px dashed var(--line2)}
+.frow:last-child{border-bottom:0}
+.frow label{font-size:14px;color:var(--ink2);font-weight:600}
+.frow small{display:block;font-weight:400;color:var(--mut);font-size:12px;line-height:1.4}
+.frow input,.frow select{width:150px;flex:none;padding:9px 11px;border:1px solid var(--line);border-radius:9px;font:inherit;font-size:14.5px;background:#fff;color:var(--ink);text-align:right}
+.frow select{text-align:left;width:220px}
+.frow input:focus,.frow select:focus{outline:2px solid var(--gold2);border-color:var(--gold2)}
+.result{background:var(--navy);border-radius:14px;color:#f2ede2;padding:20px 22px;margin-top:16px}
+.result .range{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.result .big{font-family:Fraunces,Georgia,serif;font-weight:650;font-size:clamp(26px,4.5vw,36px);color:#dfa920}
+.result .sub{font-size:13px;color:rgba(242,237,226,.75)}
+.rline{display:flex;justify-content:space-between;font-size:13.5px;padding:7px 0;border-bottom:1px dashed rgba(242,237,226,.18)}
+.rline:last-child{border-bottom:0}
+.rline b{color:#fff;font-weight:600}
+.bar{height:10px;border-radius:6px;background:rgba(255,255,255,.14);margin:14px 0 6px;position:relative;overflow:hidden}
+.bar i{position:absolute;inset:0;width:50%;background:linear-gradient(90deg,#b8860b,#dfa920);border-radius:6px;transition:width .3s}
+.dscr-flag{display:inline-block;margin-left:8px;padding:2px 9px;border-radius:20px;font-size:11.5px;font-weight:700}
+.dscr-ok{background:#1c7c4a;color:#fff}
+.dscr-warn{background:#b3352c;color:#fff}
+.note{font-size:12.5px;color:var(--mut);margin-top:12px;line-height:1.55}
+@media(max-width:600px){
+  .frow{flex-wrap:wrap}
+  .frow input,.frow select{width:100%}
+}
+</style>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"Business Valuation Calculator","url":"https://ratemybusinessbroker.com/business-valuation-calculator.html","applicationCategory":"FinanceApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"publisher":{"@type":"Organization","name":"The Broker Index","url":"https://ratemybusinessbroker.com"}}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"How do I calculate what my business is worth?","acceptedAnswer":{"@type":"Answer","text":"Most small businesses are valued as a multiple of Seller's Discretionary Earnings (SDE): net profit plus the owner's salary and benefits, plus one-time and personal expenses run through the business (add-backs). Multiply SDE by an industry multiple — typically 1.5× to 4× for main-street businesses — to get a market value range. In BizBuySell's Q1 2026 Insight data, the median sold business went for roughly 2.4× SDE."}},
+{"@type":"Question","name":"What is SDE (Seller's Discretionary Earnings)?","acceptedAnswer":{"@type":"Answer","text":"SDE is the total financial benefit a single full-time owner-operator gets from the business in a year: pre-tax net profit, plus the owner's salary, payroll taxes and benefits, plus interest, depreciation and amortization, plus legitimate add-backs such as one-time expenses and personal costs run through the business. It is the standard earnings measure for businesses under roughly $2M in value."}},
+{"@type":"Question","name":"What is a good DSCR when selling a business?","acceptedAnswer":{"@type":"Answer","text":"SBA lenders generally want a Debt Service Coverage Ratio of at least 1.25 — meaning the business's cash flow covers the buyer's annual loan payments 1.25 times over, after the buyer pays themselves a salary. If your asking price fails that math at current interest rates, bank-financed buyers cannot close at that price no matter how much they like the business."}},
+{"@type":"Question","name":"Is this calculator a formal business appraisal?","acceptedAnswer":{"@type":"Answer","text":"No. It produces a market-based estimate using published multiple ranges, which is the right starting point for a pricing conversation. A formal valuation or quality-of-earnings review from a credentialed appraiser considers your specific financials, customer concentration, transferability, and market conditions."}}
+]}
+</script>
+</head>
+<body>
+
+<header>
+  <div class="wrap hbar">
+    <a class="brand" href="/"><span class="mark">B</span><b>The Broker Index</b></a>
+    <span class="hspace"></span>
+    <a class="hbtn" href="/articles.html">Articles</a>
+    <a class="hbtn solid" href="/">Browse brokers</a>
+  </div>
+</header>
+
+<article>
+  <div class="crumb"><a href="/">Home</a> › Valuation Calculator</div>
+  <h1>What is my business worth? Free valuation calculator</h1>
+  <div class="byline">SDE × industry multiple, with an SBA-financing reality check · Updated September 2026 · No email required</div>
+
+  <p>A small business is worth what a financeable buyer will pay for its cash flow — in practice, a <strong>multiple of Seller's Discretionary Earnings (SDE)</strong>. In BizBuySell's Q1 2026 Insight Report, the median closed sale ran at roughly <strong>2.4× SDE</strong> (about 0.66× revenue), with a median sale price near <strong>$374,000</strong>. Enter your numbers below to get a defensible range, then check whether an SBA-financed buyer could actually afford it at today's rates.</p>
+
+  <div class="calc">
+    <h5>Step 1 — Your earnings (last 12 months)</h5>
+    <div class="frow">
+      <label>Annual revenue<small>Gross sales, before any expenses</small></label>
+      <input type="text" id="rev" inputmode="numeric" value="1,200,000">
+    </div>
+    <div class="frow">
+      <label>Pre-tax net profit<small>Bottom line on your P&amp;L</small></label>
+      <input type="text" id="net" inputmode="numeric" value="150,000">
+    </div>
+    <h5 style="margin-top:18px">Step 2 — Add-backs (owner benefit)</h5>
+    <div class="frow">
+      <label>Owner salary + payroll taxes + benefits<small>What you pay yourself through payroll</small></label>
+      <input type="text" id="sal" inputmode="numeric" value="90,000">
+    </div>
+    <div class="frow">
+      <label>Interest, depreciation &amp; amortization<small>Non-cash and financing costs on the P&amp;L</small></label>
+      <input type="text" id="ida" inputmode="numeric" value="25,000">
+    </div>
+    <div class="frow">
+      <label>One-time &amp; personal expenses<small>Lawsuit, one-off equipment, personal vehicle, family phone plan — must be provable</small></label>
+      <input type="text" id="oneoff" inputmode="numeric" value="15,000">
+    </div>
+    <h5 style="margin-top:18px">Step 3 — Your industry</h5>
+    <div class="frow">
+      <label>Industry<small>Sets the multiple range applied to SDE</small></label>
+      <select id="ind"></select>
+    </div>
+
+    <div class="result" id="res">
+      <div class="rline"><span>Seller's Discretionary Earnings (SDE)</span><b id="r-sde">—</b></div>
+      <div class="rline"><span>Multiple range applied</span><b id="r-mult">—</b></div>
+      <div class="bar"><i id="r-bar"></i></div>
+      <div class="range"><span class="big" id="r-mid">—</span><span class="sub" id="r-span">—</span></div>
+      <div class="rline" style="margin-top:14px"><span>Implied price ÷ revenue</span><b id="r-revx">—</b></div>
+      <h5 style="margin-top:16px;color:rgba(242,237,226,.6)">SBA financing reality check (mid-range price)</h5>
+      <div class="rline"><span>Annual debt service <span class="sub">(90% loan, 10 yr @ 10.25%)</span></span><b id="r-debt">—</b></div>
+      <div class="rline"><span>DSCR after $60k buyer salary <span id="r-flag"></span></span><b id="r-dscr">—</b></div>
+      <p class="sub" id="r-verdict" style="margin-top:10px"></p>
+    </div>
+    <p class="note">Estimate only, not an appraisal or an offer. Multiples are midpoints of published ranges for owner-operated main-street businesses; strategic buyers, real estate, inventory, and businesses over ~$2M in SDE trade differently. The Broker Index is not a financial advisor — validate pricing with a credentialed appraiser or a well-reviewed broker before listing.</p>
+  </div>
+
+  <h2>How the math works — a worked example</h2>
+  <div class="example">
+    <h5>Worked example — HVAC services company</h5>
+    <p>Revenue $1.2M · net profit $150,000. Add back the owner's $90,000 salary + payroll costs, $25,000 of interest/depreciation, and a provable $15,000 one-time expense → <strong>SDE = $280,000</strong>. Home-service businesses typically trade at <strong>2.2×–3.2× SDE</strong>, so the market range is <strong>$616,000–$896,000</strong>, midpoint ≈ $756,000. Financing check: a buyer putting 10% down borrows ~$680,000; at 10.25% over 10 years that's ~$109,000/yr of debt service. SDE minus a $60,000 replacement salary leaves $220,000 → <strong>DSCR ≈ 2.0</strong>, comfortably above the ~1.25 SBA lenders want. This price clears the bank — which is exactly why buyers would compete for it.</p>
+  </div>
+  <p>Two things kill deals at the pricing stage, and both show up in this calculator. First, <strong>unprovable add-backs</strong>: every dollar of add-back needs a paper trail, because a lender's underwriter will strike anything soft — see the add-back section in our guide to <a href="/can-i-trust-my-ma-broker.html">whether you can trust your M&amp;A broker's valuation</a>. Second, <strong>prices that fail the DSCR test</strong>: a broker who takes your listing at a flattering number that no bank will finance hasn't done you a favor, they've bought themselves a year of your exclusivity — the classic pattern in our piece on <a href="/burned-by-a-business-broker.html">sellers burned by brokers</a>.</p>
+
+  <h2>Where these multiples come from</h2>
+  <p>Multiple ranges here are drawn from published transaction data and broker fee guides: <a href="https://www.bizbuysell.com/insight-report/" target="_blank" rel="noopener">BizBuySell's quarterly Insight Reports</a> (median sold multiples by quarter), <a href="https://morganandwestfield.com/knowledge/business-broker-and-ma-advisor-fees-a-comprehensive-guide/" target="_blank" rel="noopener">Morgan &amp; Westfield's valuation guides</a>, and <a href="https://www.midstreet.com/blog/sde-multiples" target="_blank" rel="noopener">MidStreet's SDE multiple data</a>. They're midpoints for healthy, transferable, owner-operated businesses; a business with declining revenue, heavy owner dependence, or one dominant customer trades below the bottom of its range, and one with management in place and clean books trades above the top.</p>
+
+  <h2>FAQ</h2>
+  <h3>How do I calculate what my business is worth?</h3>
+  <p>Compute SDE (net profit + owner compensation + interest/depreciation + provable one-time expenses), then multiply by your industry's SDE multiple — typically 1.5× to 4× for main-street businesses. The median closed sale in BizBuySell's Q1 2026 data ran about 2.4× SDE.</p>
+  <h3>What counts as a legitimate add-back?</h3>
+  <p>Owner salary and benefits, interest, depreciation, and expenses that are genuinely one-time or personal — each with documentation. Recurring "one-time" expenses, unpaid family labor, and below-market rent from a related landlord all get struck in diligence.</p>
+  <h3>What is a good DSCR?</h3>
+  <p>SBA lenders generally require ~1.25 or better after a market salary for the buyer. Below that, bank-financed buyers can't close at your price, which shrinks your buyer pool to cash buyers who expect a discount for exactly that reason.</p>
+  <h3>Is this a formal appraisal?</h3>
+  <p>No — it's a market-based starting range. For a defensible number in negotiations or litigation, hire a credentialed appraiser (CVA/ABV) or get a broker's opinion of value and stress-test it against this math.</p>
+
+  <div class="cta">
+    <h4>Got a number? Now pick the right broker to defend it</h4>
+    <p>Every broker on The Broker Index carries client ratings on transparency and command of the deal — check them before you sign a listing agreement.</p>
+    <a href="/">Browse the directory →</a>
+  </div>
+
+  <div class="srcs">
+    <h4>Sources &amp; further reading</h4>
+    <ul>
+      <li><a href="https://www.bizbuysell.com/insight-report/" target="_blank" rel="noopener">BizBuySell Insight Report — quarterly sold-business multiples and median prices</a></li>
+      <li><a href="https://www.midstreet.com/blog/sde-multiples" target="_blank" rel="noopener">SDE Multiples: What Your Business Is Worth — MidStreet</a></li>
+      <li><a href="https://morganandwestfield.com/knowledge/business-broker-and-ma-advisor-fees-a-comprehensive-guide/" target="_blank" rel="noopener">Valuation and Fee Guides — Morgan &amp; Westfield</a></li>
+      <li><a href="https://www.sba.gov/funding-programs/loans/7a-loans" target="_blank" rel="noopener">SBA 7(a) Loan Program — U.S. Small Business Administration</a></li>
+      <li><a href="https://www.investopedia.com/terms/d/dscr.asp" target="_blank" rel="noopener">Debt-Service Coverage Ratio (DSCR) — Investopedia</a></li>
+    </ul>
+  </div>
+</article>
+
+<footer>
+  <div class="wrap">
+    <p><a href="/">The Broker Index</a> · <a href="/articles.html">Articles</a> · <a href="/business-brokers-by-state.html">Brokers by state</a> — Independent ratings and reviews of M&amp;A business brokers. General information, not legal or financial advice.</p>
+  </div>
+</footer>
+
+<script>
+const INDUSTRIES = [
+  ["General small business", 2.0, 3.0],
+  ["Restaurants & food service", 1.5, 2.5],
+  ["Retail", 1.5, 2.5],
+  ["Home & commercial services (HVAC, plumbing, landscaping)", 2.2, 3.2],
+  ["Construction & contracting", 2.0, 3.3],
+  ["Manufacturing", 3.0, 4.5],
+  ["E-commerce & online", 2.5, 3.8],
+  ["Software / technology", 3.0, 4.5],
+  ["Healthcare & medical practices", 2.5, 4.0],
+  ["Automotive (repair, dealers, carwash)", 2.0, 3.0],
+  ["Professional services (agencies, accounting)", 2.2, 3.4],
+  ["Transportation & logistics / routes", 2.0, 3.0],
+  ["Childcare & education", 2.3, 3.3],
+  ["Fitness & personal care", 1.8, 2.8]
+];
+const $ = s => document.querySelector(s);
+const sel = $('#ind');
+sel.innerHTML = INDUSTRIES.map((x,i)=>`<option value="${i}"${i===0?' selected':''}>${x[0]} (${x[1]}×–${x[2]}×)</option>`).join('');
+const money = n => '$' + Math.round(n).toLocaleString('en-US');
+function num(id){ return parseFloat(($(id).value||'').replace(/[^0-9.\-]/g,'')) || 0; }
+function fmtField(el){ const v = num('#'+el.id); el.value = v ? v.toLocaleString('en-US') : ''; }
+function calc(){
+  const rev = num('#rev'), net = num('#net'), sde = net + num('#sal') + num('#ida') + num('#oneoff');
+  const [name, lo, hi] = INDUSTRIES[+sel.value];
+  const vLo = sde*lo, vHi = sde*hi, vMid = (vLo+vHi)/2;
+  $('#r-sde').textContent = money(sde);
+  $('#r-mult').textContent = lo.toFixed(1)+'× – '+hi.toFixed(1)+'× SDE';
+  $('#r-mid').textContent = sde>0 ? money(vMid) : '—';
+  $('#r-span').textContent = sde>0 ? 'range '+money(vLo)+' – '+money(vHi) : 'enter your numbers above';
+  $('#r-bar').style.width = sde>0 ? Math.min(100, (vMid/(sde*4.5))*100)+'%' : '0%';
+  $('#r-revx').textContent = (rev>0 && sde>0) ? (vMid/rev).toFixed(2)+'× revenue' : '—';
+  // DSCR: 90% LTV, 10yr monthly amortization @ 10.25%
+  if (sde>0){
+    const loan = vMid*0.9, r = 0.1025/12, n = 120;
+    const pay = loan * r / (1 - Math.pow(1+r,-n));
+    const annual = pay*12, cash = sde - 60000, dscr = annual>0 ? cash/annual : 0;
+    $('#r-debt').textContent = money(annual)+'/yr';
+    $('#r-dscr').textContent = dscr.toFixed(2);
+    const ok = dscr >= 1.25;
+    $('#r-flag').innerHTML = '<span class="dscr-flag '+(ok?'dscr-ok':'dscr-warn')+'">'+(ok?'Financeable':'Fails bank test')+'</span>';
+    $('#r-verdict').textContent = ok
+      ? 'At the mid-range price, an SBA-financed buyer clears the ~1.25 DSCR lenders want — this price can attract bank-financed buyers.'
+      : 'At the mid-range price, cash flow doesn’t cover loan payments plus a buyer salary at the ~1.25 DSCR lenders want. Expect bank-financed buyers to offer less, or offer seller financing.';
+  } else {
+    $('#r-debt').textContent = '—'; $('#r-dscr').textContent = '—'; $('#r-flag').innerHTML=''; $('#r-verdict').textContent='';
+  }
+}
+for (const id of ['rev','net','sal','ida','oneoff']){
+  const el = document.getElementById(id);
+  el.addEventListener('input', calc);
+  el.addEventListener('blur', ()=>{ fmtField(el); calc(); });
+}
+sel.addEventListener('change', calc);
+calc();
+</script>
+</body>
+</html>

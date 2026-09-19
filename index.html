@@ -252,6 +252,8 @@ footer button,footer a{color:var(--ink2);font-weight:600;font-size:13px}
       <a href="/about.html">About</a>
       <a href="/methodology.html">Methodology</a>
       <a href="/articles.html">Articles</a>
+      <a href="/business-valuation-calculator.html">Valuation calculator</a>
+      <a href="/business-brokers-by-state.html">Brokers by state</a>
       <button onclick="openRequest()">Request a broker listing</button>
       <button onclick="openAuth()" id="f-signin">Sign in</button>
     </div>
@@ -307,6 +309,8 @@ async function loadAll(){
     if (user && x.voter_id===user.id) myVotes.add(x.review_id);
   }
   computeScores(); buildFilters();
+  const qsState = new URLSearchParams(location.search).get('state');
+  if (qsState && brokers.some(b=>b.state===qsState.toUpperCase())) { S.state = qsState.toUpperCase(); $('#f-state').value = S.state; }
   $('#stat-brokers').textContent = brokers.length.toLocaleString();
   $('#stat-reviews').textContent = reviewsAll.length.toLocaleString();
   $('#stat-states').textContent = new Set(brokers.map(x=>x.state).filter(s=>s&&s!=='—')).size;
