@@ -185,7 +185,8 @@ def gen_broker_page(b, n_state):
     plinks = []
     if b['website']: plinks.append(f'<a href="{esc(b["website"])}" target="_blank" rel="noopener nofollow">🌐 Website</a>')
     if b['linkedin']: plinks.append(f'<a href="{esc(b["linkedin"])}" target="_blank" rel="noopener nofollow">💼 LinkedIn</a>')
-    if b['phone']: plinks.append(f'<a href="tel:{esc(re.sub(r"[^0-9+]","",b["phone"]))}">📞 {esc(b["phone"])}</a>')
+    for _ph in [p.strip() for p in b['phone'].split(',') if p.strip()]:
+        plinks.append(f'<a href="tel:{esc(re.sub(r"[^0-9+]","",_ph))}">📞 {esc(_ph)}</a>')
     rate_url = f'/?state={st}' if st_name else '/'
     state_link = (f' They are one of <a href="/business-brokers-in-{state_slug(st_name)}.html">{n_state} business brokers listed in {st_name}</a> on The Broker Index.' if st_name else '')
     spec_sent = f' Their listed focus areas include {esc(spec)}.' if spec else ''
