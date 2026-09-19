@@ -316,6 +316,7 @@ async function loadAll(){
   $('#stat-reviews').textContent = reviewsAll.length.toLocaleString();
   $('#stat-states').textContent = new Set(brokers.map(x=>x.state).filter(s=>s&&s!=='—')).size;
   render();
+  resumePendingClaim();
 }
 
 function computeScores(){
@@ -494,8 +495,15 @@ function renderListing(l){
     ${btns?`<div class="ract" style="margin-top:10px">${btns}</div>`:''}
   </div>`;
 }
+function resumePendingClaim(){
+  let bid = null; try { bid = localStorage.getItem('pendingClaim'); } catch(e){}
+  if (!bid || !user || !myProfile || !myProfile.username || !brokers.length) return;
+  try { localStorage.removeItem('pendingClaim'); } catch(e){}
+  const b = brokers.find(x=>x.id===bid);
+  if (b && !b.claimed_by) openClaimForm(bid);
+}
 function openClaimForm(bid){
-  if (!user) return openAuth('Sign in to claim your profile');
+  if (!user){ try { localStorage.setItem('pendingClaim', bid); } catch(e){} return openAuth('Sign in to claim your profile'); }
   const b = brokers.find(x=>x.id===bid); if(!b) return;
   const code = 'BIX-' + Math.random().toString(36).slice(2,6).toUpperCase();
   modal(`
@@ -783,7 +791,7 @@ function openUsername(){
       <label class="fl">Username</label>
       <input class="fi" id="un-name" maxlength="24" placeholder="e.g. TexasAcquirer">
       <label class="fl">I'm primarily a…</label>
-      <select class="fi" id="un-role"><option value="buyer">Buyer</option><option value="seller">Seller</option><option value="both">Both</option><option value="other">Other</option></select>
+      <select class="fi" id="un-role"><option value="buyer">Buyer</option><option value="seller">Seller</option><option value="both">Both — buyer &amp; seller</option><option value="broker">Broker / intermediary</option><option value="other">Other</option></select>
       <div class="msg" id="un-msg"></div>
       <div style="margin-top:16px"><button class="cta" onclick="saveUsername()">Save</button></div>
     </div>`, true);
@@ -794,6 +802,7 @@ async function saveUsername(){
   const { error } = await sb.from('profiles').update({username:name, role:$('#un-role').value}).eq('id',user.id);
   if (error){ msg.className='msg err'; msg.textContent = error.code==='23505'?'That username is taken.':error.message; return; }
   myProfile.username = name; closeModal(); paintAuth(); toast(`Welcome, ${name}!`);
+  resumePendingClaim();
 }
 function openAccount(){
   modal(`

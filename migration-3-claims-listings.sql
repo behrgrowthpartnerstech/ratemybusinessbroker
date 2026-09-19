@@ -7,6 +7,11 @@
 -- or posting listings NEVER affects a broker's rating or rank.
 -- ============================================================================
 
+-- profiles: allow 'broker' as a role in the signup dropdown
+alter table public.profiles drop constraint if exists profiles_role_check;
+alter table public.profiles add constraint profiles_role_check
+  check (role in ('buyer','seller','both','other','broker'));
+
 -- broker ownership (set only when an admin approves a claim)
 alter table public.brokers add column if not exists claimed_by uuid references public.profiles(id) on delete set null;
 
