@@ -404,9 +404,12 @@ function resetView(){ Object.assign(S,{q:'',state:'',spec:'',sort:'top',page:1,w
 function toggleWatchFilter(){ if(!user) return openAuth(); S.watchOnly=!S.watchOnly; S.page=1; render(); }
 
 /* ---------- broker profile ---------- */
-function openBroker(id){
+async function openBroker(id){
   const b = brokers.find(x=>x.id===id); if(!b) return;
   const sc = scores[id];
+  const { data: lst } = await sb.from('listings').select('*').eq('broker_id',id).eq('status','active').order('created_at',{ascending:false});
+  const listings = lst||[];
+  const isOwner = user && b.claimed_by === user.id;
   const revs = reviewsAll.filter(r=>r.broker_id===id).sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
   const pavg = {};
   for (const [k] of PARAMS){ const vs = revs.map(r=>Number(r.ratings?.[k])).filter(v=>v>=1); if (vs.length) pavg[k]=vs.reduce((a,c)=>a+c,0)/vs.length; }
@@ -443,6 +446,11 @@ function openBroker(id){
       ${Object.keys(pavg).length?`<div class="params">${PARAMS.filter(([k])=>pavg[k]).map(([k,label])=>`
         <div class="prow"><span>${label}</span><span class="bar"><i style="width:${pavg[k]/5*100}%"></i></span><b>${pavg[k].toFixed(1)}</b></div>`).join('')}</div>`:''}
       <div style="margin-top:18px"><button class="cta gold" onclick="openReviewForm('${b.id}')">${mine?'Edit your review':'Write a review'}</button></div>
+      ${listings.length?`<div class="sechead">Businesses for sale <span class="n">${listings.length}</span></div>
+        ${listings.map(l=>renderListing(l)).join('')}
+        <p class="hint" style="margin:2px 0 6px">Listings are posted by the broker and link to their own materials. They never affect ratings or rank.</p>`:''}
+      ${isOwner?`<div style="margin:8px 0 4px"><button class="ghostbtn" onclick="openListingsManager('${b.id}')">Manage listings (${listings.length}/5 active)</button></div>`
+        : !b.claimed_by?`<p class="hint" style="margin:8px 0 2px">Are you ${esc(b.name.split(' ')[0])}? <a href="#" onclick="openClaimForm('${b.id}');return false">Claim this profile</a> to post your active listings. Claiming never changes your rating.</p>`:''}
       <div class="sechead">Reviews <span class="n">${revs.length}</span></div>
       ${revs.length?revs.map(r=>renderReview(r)).join(''):'<p class="hint">No reviews yet.</p>'}
     </div>`);
@@ -469,6 +477,170 @@ function renderReview(r){
       ${myProfile?.is_admin?`<button class="danger" onclick="adminRemoveReview('${r.id}')">Remove (admin)</button>`:''}
     </div>
   </div>`;
+}
+
+/* ---------- listings & claims ---------- */
+function renderListing(l){
+  const btns = [
+    l.teaser_url && `<a class="plink" target="_blank" rel="noopener" href="${esc(l.teaser_url)}" onclick="try{gtag('event','teaser_open')}catch(e){}">📄 Teaser (PDF)</a>`,
+    l.url && `<a class="plink" target="_blank" rel="noopener" href="${esc(l.url)}">🔗 View listing</a>`,
+    l.contact_email && `<a class="plink" href="mailto:${esc(l.contact_email)}?subject=${encodeURIComponent('Inquiry: '+l.title+' (via The Broker Index)')}" onclick="try{gtag('event','listing_inquire')}catch(e){}">✉️ Inquire</a>`,
+  ].filter(Boolean).join('');
+  return `<div class="rev">
+    ${l.photo_url?`<img src="${esc(l.photo_url)}" alt="" loading="lazy" style="width:100%;max-height:190px;object-fit:cover;border-radius:9px;margin-bottom:9px" onerror="this.remove()">`:''}
+    <div class="rtop"><span class="who">${esc(l.title)}</span><time>${esc(l.price_label||'')}</time></div>
+    <div class="bmeta" style="margin-top:6px">${l.industry?`<span class="chip">${esc(l.industry)}</span>`:''}${l.state?`<span class="chip loc">${esc(l.state)}</span>`:''}</div>
+    ${l.summary?`<div class="rtxt">${esc(l.summary)}</div>`:''}
+    ${btns?`<div class="ract" style="margin-top:10px">${btns}</div>`:''}
+  </div>`;
+}
+function openClaimForm(bid){
+  if (!user) return openAuth('Sign in to claim your profile');
+  const b = brokers.find(x=>x.id===bid); if(!b) return;
+  const code = 'BIX-' + Math.random().toString(36).slice(2,6).toUpperCase();
+  modal(`
+    <div class="mhead"><h3>Claim: ${esc(b.name)}</h3><button class="x" onclick="closeModal()">✕</button></div>
+    <div class="mbody">
+      <p class="hint" style="margin-top:-4px">Pick whichever proof is easiest for you — we verify every claim by hand, usually within a day or two. Claiming lets you post listings; it never changes your rating or rank.</p>
+      <label class="fl">How should we verify you?</label>
+      <select class="fi" id="cl-method" onchange="claimMethodHint('${code}')">
+        <option value="email">My work email is at my firm's domain</option>
+        <option value="linkedin">LinkedIn — I'll add a code to my profile</option>
+        <option value="phone">Call the office number listed on my profile</option>
+        <option value="other">Something else (explain below)</option>
+      </select>
+      <p class="hint" id="cl-hint" style="margin-top:8px"></p>
+      <div id="cl-codebox" class="adminbar" style="display:none">Your code: <b>${code}</b> — add it to your LinkedIn headline, About section, or a post. Keep it there until we approve, then remove it.</div>
+      <label class="fl">Work email *</label><input class="fi" id="cl-email" type="email" placeholder="you@yourfirm.com">
+      <label class="fl">Anything that helps us verify (optional)</label>
+      <textarea class="fi" id="cl-ev" maxlength="500" placeholder="e.g. the website/phone on this profile is mine; my LinkedIn URL"></textarea>
+      <div class="msg" id="cl-msg"></div>
+      <div style="margin-top:16px"><button class="cta" onclick="submitClaim('${bid}','${code}')">Submit claim</button></div>
+    </div>`, true);
+  claimMethodHint(code);
+}
+function claimMethodHint(){
+  const m = $('#cl-method').value;
+  const hints = {
+    email: 'If your email below is at the same domain as the website on your profile, we can usually approve on sight.',
+    linkedin: 'We check for your code on the LinkedIn profile already linked to this listing — this proves the profile is really yours.',
+    phone: 'We\'ll call the office number shown on this profile and ask for you, so make sure whoever answers knows to expect it.',
+    other: 'Describe below how we can confirm it\'s really you (e.g. reply from the contact form on your firm\'s website).'
+  };
+  $('#cl-hint').textContent = hints[m] || '';
+  $('#cl-codebox').style.display = m === 'linkedin' ? 'flex' : 'none';
+}
+async function submitClaim(bid, code){
+  const email = $('#cl-email').value.trim(), msg = $('#cl-msg'), method = $('#cl-method').value;
+  if (!/.+@.+\..+/.test(email)){ msg.className='msg err'; msg.textContent='Enter a valid work email.'; return; }
+  const { error } = await sb.from('broker_claims').insert({broker_id:bid, user_id:user.id, work_email:email, evidence:$('#cl-ev').value.trim(), method, verify_code: method==='linkedin' ? code : ''});
+  if (error){ msg.className='msg err'; msg.textContent = error.code==='23505' ? 'You already have a claim on file for this profile.' : error.message; return; }
+  closeModal();
+  toast(method==='phone' ? 'Claim submitted — expect a call at your office number.' : 'Claim submitted — we\'ll verify it and email you.');
+}
+async function openListingsManager(bid){
+  const b = brokers.find(x=>x.id===bid); if(!b) return;
+  const { data } = await sb.from('listings').select('*').eq('broker_id',bid).order('created_at',{ascending:false});
+  const all = data||[], active = all.filter(l=>l.status==='active').length;
+  modal(`
+    <div class="mhead"><h3>Your listings — ${esc(b.name)}</h3><button class="x" onclick="closeModal()">✕</button></div>
+    <div class="mbody">
+      <p class="hint" style="margin-top:-4px">${active}/5 active. Buyers see active listings on your profile; the Inquire button emails the address you set. Listings never affect your rating.</p>
+      ${all.map(l=>`<div class="rev">
+        <div class="rtop"><span class="who">${esc(l.title)}</span>${l.status==='inactive'?'<span class="chip">inactive</span>':''}<time>${esc(l.price_label||'')}</time></div>
+        <div class="ract">
+          <button onclick="toggleListing('${l.id}','${bid}','${l.status==='active'?'inactive':'active'}')">${l.status==='active'?'Deactivate':'Reactivate'}</button>
+          <button class="danger" onclick="delListing('${l.id}','${bid}')">Delete</button>
+        </div>
+      </div>`).join('') || '<p class="hint">No listings yet.</p>'}
+      <div class="sechead">Add a listing</div>
+      <p class="hint">Keep it non-confidential — describe the business the way you would in a public teaser.</p>
+      <label class="fl">Title *</label><input class="fi" id="li-title" maxlength="90" placeholder='e.g. "Established HVAC company, Gulf Coast"'>
+      <label class="fl">Industry</label><input class="fi" id="li-ind" maxlength="40" placeholder="e.g. Home services">
+      <label class="fl">State</label><input class="fi" id="li-state" maxlength="30" placeholder="e.g. TX">
+      <label class="fl">Price</label><input class="fi" id="li-price" maxlength="40" placeholder='e.g. "$500K–$750K" or "Inquire for price"'>
+      <label class="fl">One-line summary</label><input class="fi" id="li-sum" maxlength="240">
+      <label class="fl">Link to the full listing (optional)</label><input class="fi" id="li-url" maxlength="300" placeholder="https://…">
+      <label class="fl">Inquiry email (optional — the Inquire button emails this address)</label><input class="fi" id="li-email" maxlength="120" placeholder="deals@yourfirm.com">
+      <label class="fl">Photo (optional — JPG/PNG/WebP, max 2MB)</label><input class="fi" type="file" id="li-photo" accept="image/jpeg,image/png,image/webp">
+      <label class="fl">Blind teaser PDF (optional — max 5MB)</label><input class="fi" type="file" id="li-pdf" accept="application/pdf">
+      <label class="fl" style="display:flex;gap:8px;align-items:flex-start;font-weight:500;font-size:13px"><input type="checkbox" id="li-confirm" style="margin-top:2px">I confirm any uploaded document is a blind teaser containing no confidential or seller-identifying information.</label>
+      <div class="msg" id="li-msg"></div>
+      <div style="margin-top:14px"><button class="cta" id="li-save" onclick="saveListing('${bid}')">Publish listing</button></div>
+    </div>`);
+}
+async function saveListing(bid){
+  const msg = $('#li-msg'), photo = $('#li-photo').files[0], pdf = $('#li-pdf').files[0];
+  if (photo && photo.size > 2*1024*1024){ msg.className='msg err'; msg.textContent='Photo is over 2MB — please compress it.'; return; }
+  if (pdf && pdf.size > 5*1024*1024){ msg.className='msg err'; msg.textContent='Teaser PDF is over 5MB.'; return; }
+  if (pdf && !$('#li-confirm').checked){ msg.className='msg err'; msg.textContent='Please confirm the document is a blind teaser (checkbox above).'; return; }
+  $('#li-save').disabled = true;
+  const row = { broker_id:bid, title:$('#li-title').value.trim(), industry:$('#li-ind').value.trim(), state:$('#li-state').value.trim(), price_label:$('#li-price').value.trim()||'Inquire for price', summary:$('#li-sum').value.trim(), url:$('#li-url').value.trim(), contact_email:$('#li-email').value.trim() };
+  const { data: ins, error } = await sb.from('listings').insert(row).select().single();
+  $('#li-save').disabled = false;
+  if (error){ msg.className='msg err'; msg.textContent=error.message; return; }
+  try {
+    const extra = {};
+    if (photo){
+      const ext = ({'image/jpeg':'jpg','image/png':'png','image/webp':'webp'})[photo.type] || 'jpg';
+      const path = `${bid}/${ins.id}/photo.${ext}`;
+      const { error: e1 } = await sb.storage.from('listing-media').upload(path, photo, { upsert:true, contentType: photo.type });
+      if (e1) throw e1;
+      extra.photo_url = sb.storage.from('listing-media').getPublicUrl(path).data.publicUrl;
+    }
+    if (pdf){
+      const path = `${bid}/${ins.id}/teaser.pdf`;
+      const { error: e2 } = await sb.storage.from('listing-media').upload(path, pdf, { upsert:true, contentType:'application/pdf' });
+      if (e2) throw e2;
+      extra.teaser_url = sb.storage.from('listing-media').getPublicUrl(path).data.publicUrl;
+    }
+    if (Object.keys(extra).length){
+      const { error: e3 } = await sb.from('listings').update(extra).eq('id', ins.id);
+      if (e3) throw e3;
+    }
+  } catch(e){
+    toast('Listing saved, but a file upload failed: ' + (e.message||e));
+    openListingsManager(bid); return;
+  }
+  toast('Listing published'); openListingsManager(bid);
+}
+async function toggleListing(id,bid,status){
+  const { error } = await sb.from('listings').update({status}).eq('id',id);
+  if (error) return toast(error.message);
+  openListingsManager(bid);
+}
+async function delListing(id,bid){
+  if (!confirm('Delete this listing permanently?')) return;
+  const { error } = await sb.from('listings').delete().eq('id',id);
+  if (error) return toast(error.message);
+  openListingsManager(bid);
+}
+async function openClaims(){
+  const { data, error } = await sb.from('broker_claims').select('*').eq('status','pending').order('created_at');
+  if (error) return toast(error.message);
+  modal(`
+    <div class="mhead"><h3>Pending broker claims</h3><button class="x" onclick="closeModal()">✕</button></div>
+    <div class="mbody">${(data||[]).length? data.map(c=>{
+      const b = brokers.find(x=>x.id===c.broker_id);
+      const p = profilesById[c.user_id];
+      const dom = (c.work_email.split('@')[1]||'').toLowerCase();
+      const site = (b?.website||'').replace(/^https?:\/\/(www\.)?/i,'').split('/')[0].toLowerCase();
+      const match = !!(dom && site && (site===dom || site.endsWith('.'+dom) || dom.endsWith('.'+site)));
+      return `<div class="rev"><div class="rtop"><span class="who">${esc(b?.name||'Unknown broker')}</span>
+      ${match?'<span class="vbadge">✓ email matches firm site</span>':''}<time>${new Date(c.created_at).toLocaleDateString()}</time></div>
+      <div class="rctx">by ${esc(p?.username||'member')} · ${esc(c.work_email)} · via ${esc(c.method||'email')}${c.verify_code?` · look for code <b>${esc(c.verify_code)}</b> on their LinkedIn`:''}${(c.method==='phone'&&b?.phone)?` · call ${esc(b.phone)}`:''}${c.evidence?` · ${esc(c.evidence)}`:''}</div>
+      <div class="ract" style="flex-wrap:wrap">
+        ${b?.linkedin?`<a class="plink" target="_blank" rel="noopener" href="${esc(b.linkedin)}">💼 Check LinkedIn</a>`:''}
+        ${b?.website?`<a class="plink" target="_blank" rel="noopener" href="${esc(b.website)}">🌐 Firm site</a>`:''}
+        <button class="on" onclick="actClaim('${c.id}','approved')">Approve</button>
+        <button class="danger" onclick="actClaim('${c.id}','rejected')">Reject</button></div></div>`;
+    }).join('') : '<p class="hint">No pending claims.</p>'}</div>`);
+}
+async function actClaim(id, status){
+  const { error } = await sb.from('broker_claims').update({status}).eq('id',id);
+  if (error) return toast(error.message);
+  toast(status==='approved'?'Claim approved — that member now owns the profile.':'Claim rejected');
+  await loadAll(); openClaims();
 }
 
 /* ---------- review form ---------- */
@@ -600,7 +772,7 @@ function paintAuth(){
     : `<button class="hbtn ghost" onclick="openAuth()">Sign in</button>`;
   $('#f-signin').style.display = user? 'none':'';
   $('#adminbar').innerHTML = myProfile?.is_admin
-    ? `<div class="adminbar"><b>Admin mode.</b> You can remove reviews and delete listings from any broker profile. <button style="color:var(--blue);font-weight:700" onclick="openRequests()">Listing requests</button></div>` : '';
+    ? `<div class="adminbar"><b>Admin mode.</b> You can remove reviews and delete listings from any broker profile. <button style="color:var(--blue);font-weight:700" onclick="openRequests()">Listing requests</button> <button style="color:var(--blue);font-weight:700" onclick="openClaims()">Broker claims</button></div>` : '';
   render();
 }
 function openUsername(){
