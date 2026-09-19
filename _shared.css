@@ -74,3 +74,15 @@ table.cmp{width:100%;border-collapse:collapse;margin:20px 0;font-size:13.5px;bac
 .cmp th{background:var(--navy);color:#f2ede2;text-align:left;padding:10px 12px;font-size:12px;letter-spacing:.3px}
 .cmp td{padding:10px 12px;border-top:1px solid var(--line2);color:var(--ink2);vertical-align:top}
 .cmp tr:last-child td{background:#fdf8ec;color:var(--ink)}
+
+/* mobile header + spacing */
+@media(max-width:600px){
+  .hbar{flex-wrap:wrap;row-gap:6px;padding:10px 0}
+  .hbtn{padding:7px 10px;font-size:13px}
+  .brand b{font-size:16.5px}
+  .brand .mark{width:29px;height:29px;font-size:16px}
+  .wrap{padding:0 14px}
+  article{padding:24px 14px 32px}
+  h1{font-size:26px}
+  .tiles{grid-template-columns:repeat(auto-fit,minmax(130px,1fr))}
+}
