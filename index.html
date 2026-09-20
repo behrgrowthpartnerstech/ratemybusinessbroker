@@ -138,6 +138,28 @@ header{background:var(--navy);color:#f2ede2;position:sticky;top:0;z-index:40;box
 .rtop .who{font-weight:700}
 .vbadge{font-size:10.5px;font-weight:700;letter-spacing:.4px;padding:1.5px 7px;border-radius:99px;background:#e2f2e8;color:var(--green);text-transform:uppercase}
 .bverified{display:inline-grid;place-items:center;width:17px;height:17px;border-radius:50%;background:var(--gold2);color:#14293f;font-size:11px;font-weight:800;vertical-align:middle;line-height:1}
+.vpill{display:inline-flex;align-items:center;gap:3px;background:var(--gold2);color:#14293f;font-size:11px;font-weight:800;letter-spacing:.2px;padding:2px 8px 2px 6px;border-radius:99px;vertical-align:middle;white-space:nowrap}
+.rankseg{display:inline-flex;border:1px solid var(--line);border-radius:9px;overflow:hidden;background:#fff}
+.rankseg button{border:0;background:#fff;padding:8px 12px;font:inherit;font-size:13px;font-weight:600;color:var(--ink2);cursor:pointer;border-left:1px solid var(--line)}
+.rankseg button:first-child{border-left:0}
+.rankseg button.on{background:var(--navy);color:#f2ede2}
+.sbcmp{display:block;font-size:11.5px;color:var(--mut);margin-top:4px}
+.sbcmp b{color:var(--ink2);font-weight:700}
+.sbcmp .mut{color:var(--mut)}
+.modetag{font-weight:600;color:var(--gold)}
+.sidetag{font-size:10.5px;font-weight:700;letter-spacing:.3px;padding:1.5px 7px;border-radius:99px;background:#eef1f6;color:var(--ink2);text-transform:uppercase}
+.sidetag.sell{background:#e7f0ff;color:#1d5fa8}
+.sidetag.buy{background:#fef0e6;color:#b5651a}
+.audience{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:8px 0 2px}
+.aud{border:1px solid var(--line2);border-radius:12px;padding:12px 14px;background:var(--card)}
+.aud.empty{opacity:.65}
+.aud .al{font-size:12.5px;font-weight:700;color:var(--ink2)}
+.aud .av{font-family:Fraunces,Georgia,serif;font-size:26px;font-weight:650;color:var(--ink);line-height:1.1;margin-top:4px}
+.aud .an{font-size:11.5px;color:var(--mut);margin-top:2px}
+.bcard.verified{box-shadow:inset 3px 0 0 var(--gold2), 0 1px 2px rgba(16,28,44,.06),0 8px 24px -12px rgba(16,28,44,.14)}
+.vbanner{display:flex;gap:11px;align-items:flex-start;background:#fffaf0;border:1px solid #efe0b6;border-radius:12px;padding:12px 14px;margin:14px 0 2px;font-size:13px;color:var(--ink2);line-height:1.5}
+.vbanner b{color:var(--ink)}
+.vbanner .vchk{flex:none;display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--gold2);color:#14293f;font-weight:800;font-size:13px}
 .wholink{cursor:pointer;text-decoration:underline;text-decoration-color:var(--line)}
 .wholink:hover{color:var(--blue)}
 .repmini{font-size:11px;color:var(--mut);background:var(--paper);border:1px solid var(--line2);border-radius:99px;padding:1px 8px}
@@ -269,6 +291,12 @@ footer button,footer a{color:var(--ink2);font-weight:600;font-size:13px}
       <option value="reviews">Most reviewed</option>
       <option value="name">Name A–Z</option>
     </select>
+    <span class="rankseg" title="Rank brokers by what sellers said, what buyers said, or everyone">
+      <button data-m="overall" class="on" onclick="setRankMode('overall',this)">Overall</button>
+      <button data-m="seller" onclick="setRankMode('seller',this)">Sellers</button>
+      <button data-m="buyer" onclick="setRankMode('buyer',this)">Buyers</button>
+    </span>
+    <button class="pill" id="f-verified" onclick="toggleVerifiedFilter()">✓ Verified</button>
     <button class="pill" id="f-watch" onclick="toggleWatchFilter()">★ My list</button>
     <span class="tcount" id="tcount"></span>
   </div>
@@ -313,7 +341,7 @@ const PAGE = 40;
 
 let brokers = [], reviewsAll = [], profilesById = {}, scores = {}, votesByReview = {}, myVote = new Map(), watch = new Set();
 let user = null, myProfile = null;
-const S = { q:'', state:'', spec:'', sort:'top', page:1, watchOnly:false };
+const S = { q:'', state:'', spec:'', sort:'top', page:1, watchOnly:false, verifiedOnly:false, rankMode:'overall' };
 
 const $ = s => document.querySelector(s);
 const esc = s => String(s??'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -348,6 +376,13 @@ async function loadAll(){
   render();
 }
 
+function shrink(list, prior, M){
+  if (!list.length) return null;
+  const W = list.reduce((a,x)=>a+x.w,0);
+  const raw = list.reduce((a,x)=>a+x.overall*x.w,0)/W;
+  return { score:(W*raw+M*prior)/(W+M), W, count:list.length,
+    conf: W<1.2?'Provisional':W<3?'Early':'Established' };
+}
 function computeScores(){
   const now = Date.now(), by = {};
   for (const r of reviewsAll){
@@ -357,19 +392,22 @@ function computeScores(){
     const tier = profilesById[r.author_id]?.tier==='verified' ? 1.0 : 0.55;
     const months = Math.max(0,(now - new Date(r.created_at).getTime())/(30.44*864e5));
     const w = tier * Math.pow(.5, months/18);
-    (by[r.broker_id] ||= []).push({overall,w});
+    const side = ['buyer','seller','both'].includes(r.side) ? r.side : '';
+    (by[r.broker_id] ||= []).push({overall,w,side});
   }
   let sw=0, sww=0;
   for (const l of Object.values(by)) for (const x of l){ sw+=x.overall*x.w; sww+=x.w; }
   const prior = sww ? sw/sww : 4.0, M = 2.5;
   scores = {};
   for (const [bid,l] of Object.entries(by)){
-    const W = l.reduce((a,x)=>a+x.w,0);
-    const raw = l.reduce((a,x)=>a+x.overall*x.w,0)/W;
-    scores[bid] = { score:(W*raw+M*prior)/(W+M), W, count:l.length,
-      conf: W<1.2?'Provisional':W<3?'Early':'Established' };
+    const o = shrink(l, prior, M);
+    o.seller = shrink(l.filter(x=>x.side==='seller'||x.side==='both'), prior, M);
+    o.buyer  = shrink(l.filter(x=>x.side==='buyer'||x.side==='both'), prior, M);
+    scores[bid] = o;
   }
 }
+// score object for the active ranking lens (overall | seller | buyer)
+function modeScore(id){ const s=scores[id]; if(!s) return null; return S.rankMode==='overall'? s : s[S.rankMode]; }
 
 function buildFilters(){
   const states = [...new Set(brokers.map(b=>b.state).filter(s=>s&&s!=='—'))].sort();
@@ -385,8 +423,9 @@ function filtered(){
     (!S.state || b.state===S.state) &&
     (!S.spec || (b.specialty||'').toLowerCase().includes(S.spec.toLowerCase())) &&
     (!S.watchOnly || watch.has(b.id)) &&
+    (!S.verifiedOnly || b.claimed_by) &&
     (!q || (b.name+' '+b.firm+' '+b.city+' '+b.state).toLowerCase().includes(q)));
-  const sc = id => scores[id];
+  const sc = id => modeScore(id);
   list.sort((a,b)=>{
     if (a.rank_pin||b.rank_pin) return (a.rank_pin||1e9)-(b.rank_pin||1e9);
     if (S.sort==='name') return a.name.localeCompare(b.name);
@@ -404,17 +443,21 @@ function render(){
   $('#q2').value = S.q;
   $('#tcount').textContent = `${list.length} broker${list.length===1?'':'s'}`;
   $('#f-watch').className = 'pill' + (S.watchOnly?' on':'');
+  $('#f-verified').className = 'pill' + (S.verifiedOnly?' on':'');
   const slice = list.slice(0, S.page*PAGE);
   if (!list.length){ $('#list').innerHTML = '<div class="empty">No brokers match. Try clearing filters.</div>'; return; }
   $('#list').innerHTML = slice.map((b,i)=>{
-    const sc = scores[b.id];
+    const full = scores[b.id];
+    const sc = modeScore(b.id);
     const conf = sc ? (sc.conf==='Established'?'est':sc.conf==='Early'?'early':'prov') : 'none';
     const specs = specsOf(b).slice(0,3);
-    return `<article class="bcard" onclick="openBroker('${b.id}')">
+    const modeLbl = S.rankMode==='seller'?' <span class="modetag">from sellers</span>':S.rankMode==='buyer'?' <span class="modetag">from buyers</span>':'';
+    const cmp = full && (full.seller||full.buyer) ? `<span class="sbcmp">${full.seller?`<b>S</b> ${full.seller.score.toFixed(1)}`:'<span class="mut">S —</span>'} · ${full.buyer?`<b>B</b> ${full.buyer.score.toFixed(1)}`:'<span class="mut">B —</span>'}</span>` : '';
+    return `<article class="bcard ${b.claimed_by?'verified':''}" onclick="openBroker('${b.id}')">
       <div class="rank ${i<3&&S.sort==='top'&&sc?'top':''}">${sc?i+1:'·'}</div>
       ${b.photo?`<img class="avatar" src="${esc(b.photo)}" alt="" loading="lazy" onerror="this.outerHTML='<div class=\\'avatar ph\\'>${initials(b.name)}</div>'">`:`<div class="avatar ph">${initials(b.name)}</div>`}
       <div class="bmain">
-        <div class="bname">${esc(b.name)}${b.claimed_by?' <span class="bverified" title="Claimed & verified by the broker">✓</span>':''} ${user&&`<button class="watch ${watch.has(b.id)?'on':''}" onclick="event.stopPropagation();toggleWatch('${b.id}')" title="Save to my list">★</button>`||''}</div>
+        <div class="bname">${esc(b.name)}${b.claimed_by?' <span class="vpill" title="This broker has claimed and verified their profile">✓ Verified</span>':''} ${user&&`<button class="watch ${watch.has(b.id)?'on':''}" onclick="event.stopPropagation();toggleWatch('${b.id}')" title="Save to my list">★</button>`||''}</div>
         <div class="bfirm">${b.logo?`<img src="${esc(b.logo)}" alt="" loading="lazy" onerror="this.remove()">`:''}<span>${esc(b.firm)}</span></div>
         <div class="bmeta">
           <span class="chip loc">${esc(b.city!=='—'?b.city+', ':'')}${esc(b.state!=='—'?b.state:'')}</span>
@@ -423,15 +466,18 @@ function render(){
       </div>
       <div class="bright">
         ${sc?`<div class="score"><b>${sc.score.toFixed(1)}</b><span class="stars">${starStr(sc.score)}</span></div>
-             <span class="conf ${conf}">${sc.conf}</span>
-             <span class="rcount">${sc.count} review${sc.count===1?'':'s'}</span>`
-           :`<span class="conf none">No reviews yet</span><span class="rcount">Be the first</span>`}
+             <span class="conf ${conf}">${sc.conf}${modeLbl}</span>
+             <span class="rcount">${sc.count} review${sc.count===1?'':'s'}</span>
+             ${cmp}`
+           :`<span class="conf none">${S.rankMode==='overall'?'No reviews yet':'No '+S.rankMode+' reviews'}</span><span class="rcount">${S.rankMode==='overall'?'Be the first':(full?'has other reviews':'Be the first')}</span>`}
       </div>
     </article>`;
   }).join('') + (list.length>slice.length?`<button class="more" onclick="S.page++;render()">Show more (${list.length-slice.length} remaining)</button>`:'');
 }
-function resetView(){ Object.assign(S,{q:'',state:'',spec:'',sort:'top',page:1,watchOnly:false}); $('#f-state').value='';$('#f-spec').value='';$('#f-sort').value='top'; render(); window.scrollTo({top:0}); }
+function resetView(){ Object.assign(S,{q:'',state:'',spec:'',sort:'top',page:1,watchOnly:false,verifiedOnly:false}); $('#f-state').value='';$('#f-spec').value='';$('#f-sort').value='top'; render(); window.scrollTo({top:0}); }
 function toggleWatchFilter(){ if(!user) return openAuth(); S.watchOnly=!S.watchOnly; S.page=1; render(); }
+function toggleVerifiedFilter(){ S.verifiedOnly=!S.verifiedOnly; S.page=1; render(); }
+function setRankMode(m, btn){ S.rankMode=m; S.page=1; document.querySelectorAll('.rankseg button').forEach(x=>x.classList.toggle('on', x.dataset.m===m)); render(); }
 
 /* ---------- broker profile ---------- */
 function openBroker(id){
@@ -455,7 +501,7 @@ function openBroker(id){
       <div class="phead">
         ${b.photo?`<img class="avatar" src="${esc(b.photo)}" onerror="this.outerHTML='<div class=\\'avatar ph\\' style=\\'width:84px;height:84px\\'>${initials(b.name)}</div>'">`:`<div class="avatar ph" style="width:84px;height:84px">${initials(b.name)}</div>`}
         <div style="min-width:0">
-          <div class="pname">${esc(b.name)}${b.claimed_by?' <span class="bverified" title="Claimed & verified by the broker">✓</span>':''}</div>
+          <div class="pname">${esc(b.name)}${b.claimed_by?' <span class="vpill" title="This broker has claimed and verified their profile">✓ Verified</span>':''}</div>
           <div class="pfirm">${b.logo?`<img src="${esc(b.logo)}" onerror="this.remove()">`:''}<span>${esc(b.firm)}</span></div>
           <div class="bmeta" style="margin-top:7px">
             <span class="chip loc">${esc(b.city!=='—'?b.city+', ':'')}${esc(b.state!=='—'?b.state:'')}</span>
@@ -464,13 +510,20 @@ function openBroker(id){
           <div class="plinks">${links||'<span class="hint">No contact details on file</span>'}</div>
         </div>
       </div>
+      ${b.claimed_by?`<div class="vbanner"><span class="vchk">✓</span><div><b>Verified broker.</b> ${esc(b.name.split(' ')[0])} has claimed and verified this profile. Contact details are broker-confirmed — but reviews and the rating stay fully independent.</div></div>`:''}
       <div class="pscore">
         ${sc?`<div class="big">${sc.score.toFixed(1)}</div>
           <div><div class="stars" style="font-size:17px">${starStr(sc.score)}</div>
           <div class="rcount" style="margin-top:2px">${sc.count} review${sc.count===1?'':'s'} · <span class="conf ${sc.conf==='Established'?'est':sc.conf==='Early'?'early':'prov'}">${sc.conf}</span></div></div>`
         :`<div><b>Not yet rated.</b><div class="rcount" style="margin-top:2px">Worked with ${esc(b.name.split(' ')[0])}? Your review starts their record.</div></div>`}
       </div>
-      ${Object.keys(pavg).length?`<div class="params">${PARAMS.filter(([k])=>pavg[k]).map(([k,label])=>`
+      ${(sc&&(sc.seller||sc.buyer))?`<div class="sechead">Seller vs buyer experience</div>
+        <div class="audience">
+          <div class="aud ${sc.seller?'':'empty'}"><div class="al">🏷️ As a seller</div>${sc.seller?`<div class="av">${sc.seller.score.toFixed(1)}</div><div class="an">${sc.seller.count} review${sc.seller.count===1?'':'s'}</div>`:`<div class="an">No seller reviews yet</div>`}</div>
+          <div class="aud ${sc.buyer?'':'empty'}"><div class="al">🔎 As a buyer</div>${sc.buyer?`<div class="av">${sc.buyer.score.toFixed(1)}</div><div class="an">${sc.buyer.count} review${sc.buyer.count===1?'':'s'}</div>`:`<div class="an">No buyer reviews yet</div>`}</div>
+        </div>
+        <p class="hint" style="margin-top:2px">Some brokers are stronger on one side of the deal — this splits the same reviews by who left them.</p>`:''}
+      ${Object.keys(pavg).length?`<div class="sechead">Rated parameters</div><div class="params">${PARAMS.filter(([k])=>pavg[k]).map(([k,label])=>`
         <div class="prow"><span>${label}</span><span class="bar"><i style="width:${pavg[k]/5*100}%"></i></span><b>${pavg[k].toFixed(1)}</b></div>`).join('')}</div>`:''}
       <div style="margin-top:18px"><button class="cta gold" onclick="openReviewForm('${b.id}')">${mine?'Edit your review':'Write a review'}</button></div>
       <div class="sechead">Reviews <span class="n">${revs.length}</span></div>
@@ -488,6 +541,7 @@ function renderReview(r){
     <div class="rtop">
       <span class="who wholink" onclick="openReviewer('${r.author_id}')">${esc(p?.username||'Member')}</span>
       ${p?.tier==='verified'?'<span class="vbadge">Verified</span>':''}
+      ${r.side==='seller'?'<span class="sidetag sell">Seller</span>':r.side==='buyer'?'<span class="sidetag buy">Buyer</span>':r.side==='both'?'<span class="sidetag">Buyer &amp; seller</span>':''}
       <span class="repmini" title="Reviewer reputation">${rankTitle(rep.points)} · ${rep.points}pt</span>
       <span class="stars">${starStr(overall)}</span>
       <time>${new Date(r.created_at).toLocaleDateString('en-US',{month:'short',year:'numeric'})}</time>
@@ -512,7 +566,11 @@ function openReviewForm(bid){
     <div class="mhead"><h3>Review ${esc(b.name)}</h3><button class="x" onclick="closeModal()">✕</button></div>
     <div class="mbody">
       <p class="hint" style="margin-top:-6px">Rate only what you experienced — skip any parameter you can't judge. At least one is required.</p>
-      <div id="rf-stars" style="margin-top:8px">${PARAMS.map(([k,label,sub])=>`
+      <label class="fl">Were you the buyer or the seller in this deal? *</label>
+      <select class="fi" id="rf-side">
+        ${[['','Select…'],['seller','I was the seller'],['buyer','I was the buyer'],['both','Both / other']].map(([v,t])=>`<option value="${v}" ${((mine?.side)||(mine?'':( {buyer:'buyer',seller:'seller',both:'both'}[myProfile?.role]||'')))===v?'selected':''}>${t}</option>`).join('')}
+      </select>
+      <div id="rf-stars" style="margin-top:12px">${PARAMS.map(([k,label,sub])=>`
         <div class="starrow"><div><div class="lab">${label}</div><div class="sub">${sub}</div></div>
         <div class="starpick" data-k="${k}">${[1,2,3,4,5].map(i=>`<button data-v="${i}" class="${cur[k]>=i?'on':''}" onclick="pickStar(this)">★</button>`).join('')}</div></div>`).join('')}
       </div>
@@ -543,9 +601,12 @@ async function saveReview(bid){
   });
   const msg = $('#rf-msg');
   if (!Object.keys(ratings).length){ msg.className='msg err'; msg.textContent='Rate at least one parameter.'; return; }
+  const side = $('#rf-side').value;
+  if (!side){ msg.className='msg err'; msg.textContent='Please pick whether you were the buyer or the seller.'; return; }
   $('#rf-save').disabled = true;
-  const row = { broker_id:bid, author_id:user.id, ratings, text:$('#rf-text').value.trim(), stage:$('#rf-stage').value, ctx:$('#rf-ctx').value.trim(), status:'published' };
-  const { error } = await sb.from('reviews').upsert(row, { onConflict:'broker_id,author_id' });
+  const row = { broker_id:bid, author_id:user.id, ratings, side, text:$('#rf-text').value.trim(), stage:$('#rf-stage').value, ctx:$('#rf-ctx').value.trim(), status:'published' };
+  let { error } = await sb.from('reviews').upsert(row, { onConflict:'broker_id,author_id' });
+  if (error && /side/.test(error.message||'')) { delete row.side; ({ error } = await sb.from('reviews').upsert(row, { onConflict:'broker_id,author_id' })); }
   $('#rf-save').disabled = false;
   if (error){ msg.className='msg err'; msg.textContent = error.message; return; }
   toast('Review published. Thank you for adding to the record.');
