@@ -137,6 +137,7 @@ header{background:var(--navy);color:#f2ede2;position:sticky;top:0;z-index:40;box
 .rtop{display:flex;align-items:center;gap:8px;font-size:13px;flex-wrap:wrap}
 .rtop .who{font-weight:700}
 .vbadge{font-size:10.5px;font-weight:700;letter-spacing:.4px;padding:1.5px 7px;border-radius:99px;background:#e2f2e8;color:var(--green);text-transform:uppercase}
+.bverified{display:inline-grid;place-items:center;width:17px;height:17px;border-radius:50%;background:var(--gold2);color:#14293f;font-size:11px;font-weight:800;vertical-align:middle;line-height:1}
 .wholink{cursor:pointer;text-decoration:underline;text-decoration-color:var(--line)}
 .wholink:hover{color:var(--blue)}
 .repmini{font-size:11px;color:var(--mut);background:var(--paper);border:1px solid var(--line2);border-radius:99px;padding:1px 8px}
@@ -413,7 +414,7 @@ function render(){
       <div class="rank ${i<3&&S.sort==='top'&&sc?'top':''}">${sc?i+1:'·'}</div>
       ${b.photo?`<img class="avatar" src="${esc(b.photo)}" alt="" loading="lazy" onerror="this.outerHTML='<div class=\\'avatar ph\\'>${initials(b.name)}</div>'">`:`<div class="avatar ph">${initials(b.name)}</div>`}
       <div class="bmain">
-        <div class="bname">${esc(b.name)} ${user&&`<button class="watch ${watch.has(b.id)?'on':''}" onclick="event.stopPropagation();toggleWatch('${b.id}')" title="Save to my list">★</button>`||''}</div>
+        <div class="bname">${esc(b.name)}${b.claimed_by?' <span class="bverified" title="Claimed & verified by the broker">✓</span>':''} ${user&&`<button class="watch ${watch.has(b.id)?'on':''}" onclick="event.stopPropagation();toggleWatch('${b.id}')" title="Save to my list">★</button>`||''}</div>
         <div class="bfirm">${b.logo?`<img src="${esc(b.logo)}" alt="" loading="lazy" onerror="this.remove()">`:''}<span>${esc(b.firm)}</span></div>
         <div class="bmeta">
           <span class="chip loc">${esc(b.city!=='—'?b.city+', ':'')}${esc(b.state!=='—'?b.state:'')}</span>
@@ -454,7 +455,7 @@ function openBroker(id){
       <div class="phead">
         ${b.photo?`<img class="avatar" src="${esc(b.photo)}" onerror="this.outerHTML='<div class=\\'avatar ph\\' style=\\'width:84px;height:84px\\'>${initials(b.name)}</div>'">`:`<div class="avatar ph" style="width:84px;height:84px">${initials(b.name)}</div>`}
         <div style="min-width:0">
-          <div class="pname">${esc(b.name)}</div>
+          <div class="pname">${esc(b.name)}${b.claimed_by?' <span class="bverified" title="Claimed & verified by the broker">✓</span>':''}</div>
           <div class="pfirm">${b.logo?`<img src="${esc(b.logo)}" onerror="this.remove()">`:''}<span>${esc(b.firm)}</span></div>
           <div class="bmeta" style="margin-top:7px">
             <span class="chip loc">${esc(b.city!=='—'?b.city+', ':'')}${esc(b.state!=='—'?b.state:'')}</span>
@@ -727,13 +728,31 @@ async function saveUsername(){
   myProfile.username = name; closeModal(); paintAuth(); toast(`Welcome, ${name}!`);
 }
 function openAccount(){
+  const rep = reputationFor(user.id);
+  const rs = reviewsAll.filter(r=>r.author_id===user.id).sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
+  const bName = id => (brokers.find(b=>b.id===id)||{}).name || 'a broker';
   modal(`
-    <div class="mhead"><h3>${esc(myProfile?.username||'Account')}</h3><button class="x" onclick="closeModal()">✕</button></div>
+    <div class="mhead"><h3>${esc(myProfile?.username||'Your account')}</h3><button class="x" onclick="closeModal()">✕</button></div>
     <div class="mbody">
+      <div class="repcard">
+        <div><div class="pts">${rep.points}</div><div class="sub2">points</div></div>
+        <div style="min-width:0">
+          <div class="tt">${esc(myProfile?.username||'Member')} ${rep.verified?'<span class="vbadge">Verified</span>':''}</div>
+          <div class="sub2">${rankTitle(rep.points)} · ${rep.reviews} review${rep.reviews===1?'':'s'} · ${rep.helpfulUp} helpful vote${rep.helpfulUp===1?'':'s'} · ${rep.earned}/7 badges</div>
+        </div>
+      </div>
+      <div class="sechead">Badges</div>
+      <div class="badgegrid">${rep.badges.map(b=>`<div class="badge ${b.earned?'earned':''}"><div class="ic">${b.ic}</div><div class="bl">${esc(b.label)}</div><div class="bd">${esc(b.desc)}</div></div>`).join('')}</div>
+      <div class="sechead">My reviews <span class="n">${rs.length}</span></div>
+      ${rs.length? rs.map(r=>{
+        const vals=Object.values(r.ratings||{}).map(Number).filter(v=>v>=1); const ov=vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:0;
+        return `<div class="rev"><div class="rtop"><a class="who wholink" onclick="closeModal();openBroker('${r.broker_id}')">${esc(bName(r.broker_id))}</a><span class="stars">${starStr(ov)}</span><time>${new Date(r.created_at).toLocaleDateString('en-US',{month:'short',year:'numeric'})}</time></div>${r.text?`<div class="rtxt">${esc(r.text)}</div>`:''}<div class="ract">${voteWidget(r.id)}<button onclick="closeModal();openReviewForm('${r.broker_id}')">Edit</button></div></div>`;
+      }).join('') : '<p class="hint">You haven\'t written any reviews yet. Find a broker you\'ve worked with and be the first to rate them.</p>'}
+      <div class="sechead">Account</div>
       <p class="hint">${esc(user.email)} · ${myProfile?.tier==='verified'?'Verified member':'Member'}${myProfile?.is_admin?' · Administrator':''}</p>
-      ${myProfile?.tier!=='verified'?`<div style="margin-top:14px"><button class="ghostbtn" onclick="requestVerify()">Request verified status</button><p class="hint" style="margin-top:6px">Verified reviewers have proven a real transaction. An admin reviews each request; once approved you get a Verified badge and your reviews carry ~2× weight.</p></div>`:''}
+      ${myProfile?.tier!=='verified'?`<div style="margin-top:10px"><button class="ghostbtn" onclick="requestVerify()">Request verified status</button><p class="hint" style="margin-top:6px">Verified reviewers have proven a real transaction. An admin reviews each request; once approved you get a Verified badge and your reviews carry ~2× weight.</p></div>`:''}
       <div style="margin-top:14px"><button class="ghostbtn" onclick="signOut()">Sign out</button></div>
-    </div>`, true);
+    </div>`);
 }
 async function requestVerify(){
   const note = prompt('To verify, tell us which broker you transacted with and roughly when. An admin may ask for documentation.');
