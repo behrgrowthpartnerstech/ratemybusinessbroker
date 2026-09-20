@@ -137,6 +137,33 @@ header{background:var(--navy);color:#f2ede2;position:sticky;top:0;z-index:40;box
 .rtop{display:flex;align-items:center;gap:8px;font-size:13px;flex-wrap:wrap}
 .rtop .who{font-weight:700}
 .vbadge{font-size:10.5px;font-weight:700;letter-spacing:.4px;padding:1.5px 7px;border-radius:99px;background:#e2f2e8;color:var(--green);text-transform:uppercase}
+.wholink{cursor:pointer;text-decoration:underline;text-decoration-color:var(--line)}
+.wholink:hover{color:var(--blue)}
+.repmini{font-size:11px;color:var(--mut);background:var(--paper);border:1px solid var(--line2);border-radius:99px;padding:1px 8px}
+.votes{display:inline-flex;align-items:center;gap:6px}
+.vbtn{border:1px solid var(--line);background:#fff;border-radius:7px;min-width:26px;height:24px;cursor:pointer;color:var(--mut);font-size:11px;line-height:1;padding:0}
+.vbtn:hover{border-color:var(--mut)}
+.vbtn.up.on{background:#e2f2e8;border-color:#bfe3cd;color:var(--green)}
+.vbtn.down.on{background:#fdecea;border-color:#f3c4bf;color:var(--red)}
+.vnet{min-width:22px;text-align:center;font-size:13px;color:var(--mut)}
+.vnet.pos{color:var(--green)}.vnet.neg{color:var(--red)}
+.vlbl{font-size:12px;color:var(--mut);margin-left:2px}
+.badgegrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin:12px 0 4px}
+.badge{border:1px solid var(--line2);border-radius:12px;padding:12px;background:var(--card);opacity:.45;filter:grayscale(1)}
+.badge.earned{opacity:1;filter:none;border-color:#efe2bd;background:#fffdf6}
+.badge .ic{font-size:20px;line-height:1}
+.badge .bl{font-weight:700;font-size:13px;margin-top:5px}
+.badge .bd{font-size:11.5px;color:var(--mut);margin-top:2px;line-height:1.35}
+.repcard{display:flex;gap:16px;align-items:center;background:var(--navy);color:#f2ede2;border-radius:14px;padding:16px 18px;margin:2px 0 6px}
+.repcard .pts{font-family:Fraunces,Georgia,serif;font-size:30px;font-weight:650;color:#dfa920;line-height:1}
+.repcard .tt{font-weight:700}
+.repcard .sub2{font-size:12.5px;color:rgba(242,237,226,.72);margin-top:3px}
+.lbrow{display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid var(--line2);border-radius:11px;margin-top:8px;background:var(--card);cursor:pointer}
+.lbrow:hover{border-color:var(--gold2)}
+.lbrow .rk{font-family:Fraunces,Georgia,serif;font-weight:650;color:var(--mut);width:26px;text-align:center}
+.lbrow .nm2{font-weight:700}
+.lbrow .mt{font-size:12px;color:var(--mut);margin-top:2px}
+.lbrow .pp{margin-left:auto;font-weight:700;color:var(--gold)}
 .rtop time{color:var(--mut);margin-left:auto;font-size:12px}
 .rtxt{margin-top:7px;font-size:14px;color:var(--ink2);white-space:pre-wrap}
 .rctx{margin-top:6px;font-size:12px;color:var(--mut)}
@@ -255,6 +282,7 @@ footer button,footer a{color:var(--ink2);font-weight:600;font-size:13px}
       <a href="/articles.html">Articles</a>
       <a href="/business-valuation-calculator.html">Valuation calculator</a>
       <a href="/business-brokers-by-state.html">Brokers by state</a>
+      <button onclick="openLeaderboard()">🏆 Top reviewers</button>
       <button onclick="openRequest()">Request a broker listing</button>
       <button onclick="openAuth()" id="f-signin">Sign in</button>
     </div>
@@ -282,7 +310,7 @@ const PARAMS = [
 ];
 const PAGE = 40;
 
-let brokers = [], reviewsAll = [], profilesById = {}, scores = {}, votesByReview = {}, myVotes = new Set(), watch = new Set();
+let brokers = [], reviewsAll = [], profilesById = {}, scores = {}, votesByReview = {}, myVote = new Map(), watch = new Set();
 let user = null, myProfile = null;
 const S = { q:'', state:'', spec:'', sort:'top', page:1, watchOnly:false };
 
@@ -299,15 +327,16 @@ async function loadAll(){
     sb.from('brokers').select('*').limit(2000),
     sb.from('reviews').select('*').eq('status','published').limit(5000),
     sb.from('profiles').select('id,username,tier').limit(5000),
-    sb.from('review_votes').select('review_id,voter_id').limit(20000),
+    sb.from('review_votes').select('review_id,voter_id,value').limit(50000),
   ]);
   if (b.error) { $('#list').innerHTML = '<div class="empty">Could not reach the database. Please refresh in a moment.</div>'; return; }
   brokers = b.data||[]; reviewsAll = r.data||[];
   profilesById = Object.fromEntries((p.data||[]).map(x=>[x.id,x]));
-  votesByReview = {}; myVotes = new Set();
+  votesByReview = {}; myVote = new Map();
   for (const x of (v.data||[])) {
-    votesByReview[x.review_id] = (votesByReview[x.review_id]||0)+1;
-    if (user && x.voter_id===user.id) myVotes.add(x.review_id);
+    const val = x.value==null ? 1 : x.value;
+    votesByReview[x.review_id] = (votesByReview[x.review_id]||0)+val;
+    if (user && x.voter_id===user.id) myVote.set(x.review_id, val);
   }
   computeScores(); buildFilters();
   const qsState = new URLSearchParams(location.search).get('state');
@@ -452,19 +481,20 @@ function renderReview(r){
   const p = profilesById[r.author_id];
   const vals = Object.values(r.ratings||{}).map(Number).filter(v=>v>=1);
   const overall = vals.length? vals.reduce((a,b)=>a+b,0)/vals.length : 0;
-  const n = votesByReview[r.id]||0;
   const mine = user && r.author_id===user.id;
+  const rep = reputationFor(r.author_id);
   return `<div class="rev">
     <div class="rtop">
-      <span class="who">${esc(p?.username||'Member')}</span>
+      <span class="who wholink" onclick="openReviewer('${r.author_id}')">${esc(p?.username||'Member')}</span>
       ${p?.tier==='verified'?'<span class="vbadge">Verified</span>':''}
+      <span class="repmini" title="Reviewer reputation">${rankTitle(rep.points)} · ${rep.points}pt</span>
       <span class="stars">${starStr(overall)}</span>
       <time>${new Date(r.created_at).toLocaleDateString('en-US',{month:'short',year:'numeric'})}</time>
     </div>
     ${r.text?`<div class="rtxt">${esc(r.text)}</div>`:''}
     ${(r.ctx||r.stage)?`<div class="rctx">${esc([r.stage,r.ctx].filter(Boolean).join(' · '))}</div>`:''}
     <div class="ract">
-      <button class="${myVotes.has(r.id)?'on':''}" onclick="voteReview('${r.id}')">▲ Helpful${n?` (${n})`:''}</button>
+      ${voteWidget(r.id)}
       ${mine?'':`<button onclick="reportReview('${r.id}')">Report</button>`}
       ${myProfile?.is_admin?`<button class="danger" onclick="adminRemoveReview('${r.id}')">Remove (admin)</button>`:''}
     </div>
@@ -526,18 +556,91 @@ async function deleteReview(rid,bid){
   if (error) return toast(error.message);
   toast('Review deleted'); await loadAll(); closeModal(); openBroker(bid);
 }
-async function voteReview(rid){
-  if (!user) return openAuth('Sign in to mark reviews helpful');
-  if (myVotes.has(rid)){
-    await sb.from('review_votes').delete().eq('review_id',rid).eq('voter_id',user.id);
-    myVotes.delete(rid); votesByReview[rid]=Math.max(0,(votesByReview[rid]||1)-1);
-  } else {
-    const { error } = await sb.from('review_votes').insert({review_id:rid, voter_id:user.id});
+async function voteReview(rid, dir){
+  if (!user) return openAuth('Sign in to vote on reviews');
+  const cur = myVote.get(rid)||0;
+  if (cur===dir){
+    const { error } = await sb.from('review_votes').delete().eq('review_id',rid).eq('voter_id',user.id);
     if (error) return toast(error.message);
-    myVotes.add(rid); votesByReview[rid]=(votesByReview[rid]||0)+1;
+    myVote.delete(rid); votesByReview[rid]=(votesByReview[rid]||0)-dir;
+  } else {
+    const { error } = await sb.from('review_votes').upsert({review_id:rid, voter_id:user.id, value:dir}, { onConflict:'review_id,voter_id' });
+    if (error) return toast(error.message);
+    votesByReview[rid]=(votesByReview[rid]||0)-cur+dir; myVote.set(rid, dir);
   }
-  const btn = event.target; btn.classList.toggle('on', myVotes.has(rid));
-  btn.innerHTML = `▲ Helpful${votesByReview[rid]?` (${votesByReview[rid]})`:''}`;
+  refreshVoteRow(rid);
+}
+function voteWidget(rid){
+  const net = votesByReview[rid]||0, mv = myVote.get(rid)||0;
+  return `<span class="votes" id="vote-${rid}">
+    <button class="vbtn up ${mv===1?'on':''}" title="Helpful" onclick="voteReview('${rid}',1)">▲</button>
+    <b class="vnet ${net>0?'pos':net<0?'neg':''}">${net>0?'+'+net:net}</b>
+    <button class="vbtn down ${mv===-1?'on':''}" title="Not helpful" onclick="voteReview('${rid}',-1)">▼</button>
+    <span class="vlbl">helpful?</span>
+  </span>`;
+}
+function refreshVoteRow(rid){ const el=document.getElementById('vote-'+rid); if(el) el.outerHTML=voteWidget(rid); }
+
+/* ---------- reviewer reputation, badges, public profiles, leaderboard ---------- */
+function reputationFor(uid){
+  const rs = reviewsAll.filter(r=>r.author_id===uid);
+  let helpfulUp=0, detailed=0;
+  for (const r of rs){ helpfulUp += Math.max(0, votesByReview[r.id]||0); if ((r.text||'').length>=100) detailed++; }
+  const verified = profilesById[uid]?.tier==='verified';
+  const reviews = rs.length;
+  const points = reviews*10 + helpfulUp*5 + detailed*5 + (verified?50:0);
+  const badges = [
+    {ic:'✍️', label:'First Review',    earned:reviews>=1,   desc:'Write your first review'},
+    {ic:'📝', label:'Contributor',     earned:reviews>=5,   desc:'Write 5 reviews'},
+    {ic:'🏅', label:'Prolific',        earned:reviews>=15,  desc:'Write 15 reviews'},
+    {ic:'📖', label:'Detailed',        earned:detailed>=3,  desc:'3 reviews of 100+ characters'},
+    {ic:'👍', label:'Helpful',         earned:helpfulUp>=10,desc:'Earn 10 helpful votes'},
+    {ic:'⭐', label:'Community Voice',  earned:helpfulUp>=50,desc:'Earn 50 helpful votes'},
+    {ic:'✅', label:'Verified',        earned:verified,     desc:'Verify a real transaction (admin-approved)'},
+  ];
+  return {reviews, helpfulUp, detailed, verified, points, badges, earned:badges.filter(b=>b.earned).length};
+}
+function rankTitle(p){ return p>=300?'Elite Reviewer':p>=120?'Trusted Reviewer':p>=40?'Contributor':'Newcomer'; }
+
+function openReviewer(uid){
+  const p = profilesById[uid], rep = reputationFor(uid);
+  const rs = reviewsAll.filter(r=>r.author_id===uid).sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
+  const bName = id => (brokers.find(b=>b.id===id)||{}).name || 'a broker';
+  modal(`
+    <div class="mhead"><h3>Reviewer profile</h3><button class="x" onclick="closeModal()">✕</button></div>
+    <div class="mbody">
+      <div class="repcard">
+        <div><div class="pts">${rep.points}</div><div class="sub2">points</div></div>
+        <div style="min-width:0">
+          <div class="tt">${esc(p?.username||'Member')} ${rep.verified?'<span class="vbadge">Verified</span>':''}</div>
+          <div class="sub2">${rankTitle(rep.points)} · ${rep.reviews} review${rep.reviews===1?'':'s'} · ${rep.helpfulUp} helpful vote${rep.helpfulUp===1?'':'s'} · ${rep.earned}/7 badges</div>
+        </div>
+      </div>
+      <div class="sechead">Badges</div>
+      <div class="badgegrid">${rep.badges.map(b=>`<div class="badge ${b.earned?'earned':''}"><div class="ic">${b.ic}</div><div class="bl">${esc(b.label)}</div><div class="bd">${esc(b.desc)}</div></div>`).join('')}</div>
+      <div class="sechead">Reviews <span class="n">${rs.length}</span></div>
+      ${rs.length? rs.map(r=>{
+        const vals=Object.values(r.ratings||{}).map(Number).filter(v=>v>=1); const ov=vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:0;
+        return `<div class="rev"><div class="rtop"><a class="who wholink" onclick="closeModal();openBroker('${r.broker_id}')">${esc(bName(r.broker_id))}</a><span class="stars">${starStr(ov)}</span><time>${new Date(r.created_at).toLocaleDateString('en-US',{month:'short',year:'numeric'})}</time></div>${r.text?`<div class="rtxt">${esc(r.text)}</div>`:''}<div class="ract">${voteWidget(r.id)}</div></div>`;
+      }).join('') : '<p class="hint">No reviews yet.</p>'}
+    </div>`);
+}
+
+function openLeaderboard(){
+  const uids=[...new Set(reviewsAll.map(r=>r.author_id))];
+  const rows=uids.map(u=>({u, name:profilesById[u]?.username||'Member', rep:reputationFor(u)}))
+    .sort((a,b)=>b.rep.points-a.rep.points).slice(0,50);
+  modal(`
+    <div class="mhead"><h3>🏆 Top reviewers</h3><button class="x" onclick="closeModal()">✕</button></div>
+    <div class="mbody">
+      <p class="hint" style="margin-top:-4px">Ranked by reputation — points come from helpful, verified and detailed reviews, not just volume.</p>
+      ${rows.length? rows.map((row,i)=>`<div class="lbrow" onclick="openReviewer('${row.u}')">
+        <span class="rk">${i+1}</span>
+        <div style="min-width:0"><div class="nm2">${esc(row.name)} ${row.rep.verified?'<span class="vbadge">Verified</span>':''}</div>
+        <div class="mt">${rankTitle(row.rep.points)} · ${row.rep.reviews} review${row.rep.reviews===1?'':'s'} · ${row.rep.earned}/7 badges</div></div>
+        <span class="pp">${row.rep.points}</span></div>`).join('')
+      : '<p class="hint">No reviewers yet — be the first to write a review.</p>'}
+    </div>`);
 }
 async function reportReview(rid){
   if (!user) return openAuth('Sign in to report a review');
@@ -600,7 +703,7 @@ function paintAuth(){
     : `<button class="hbtn ghost" onclick="openAuth()">Sign in</button>`;
   $('#f-signin').style.display = user? 'none':'';
   $('#adminbar').innerHTML = myProfile?.is_admin
-    ? `<div class="adminbar"><b>Admin mode.</b> Remove reviews and delete listings from any profile. <button style="color:var(--blue);font-weight:700" onclick="openManageBrokers()">Manage brokers</button> <button style="color:var(--blue);font-weight:700" onclick="openRequests()">Listing requests</button></div>` : '';
+    ? `<div class="adminbar"><b>Admin mode.</b> Remove reviews and delete listings from any profile. <button style="color:var(--blue);font-weight:700" onclick="openManageBrokers()">Manage brokers</button> <button style="color:var(--blue);font-weight:700" onclick="openVerifications()">Verification requests</button> <button style="color:var(--blue);font-weight:700" onclick="openRequests()">Listing requests</button></div>` : '';
   render();
 }
 function openUsername(){
@@ -628,13 +731,16 @@ function openAccount(){
     <div class="mhead"><h3>${esc(myProfile?.username||'Account')}</h3><button class="x" onclick="closeModal()">✕</button></div>
     <div class="mbody">
       <p class="hint">${esc(user.email)} · ${myProfile?.tier==='verified'?'Verified member':'Member'}${myProfile?.is_admin?' · Administrator':''}</p>
-      ${myProfile?.tier!=='verified'?`<div style="margin-top:14px"><button class="ghostbtn" onclick="requestVerify()">Request verified status</button><p class="hint" style="margin-top:6px">Verified reviewers (proof of a real transaction) carry ~2× weight in rankings.</p></div>`:''}
+      ${myProfile?.tier!=='verified'?`<div style="margin-top:14px"><button class="ghostbtn" onclick="requestVerify()">Request verified status</button><p class="hint" style="margin-top:6px">Verified reviewers have proven a real transaction. An admin reviews each request; once approved you get a Verified badge and your reviews carry ~2× weight.</p></div>`:''}
       <div style="margin-top:14px"><button class="ghostbtn" onclick="signOut()">Sign out</button></div>
     </div>`, true);
 }
 async function requestVerify(){
-  const { error } = await sb.from('verification_requests').insert({user_id:user.id, kind:'reviewer'});
-  toast(error? 'Request already on file or failed.' : 'Verification requested — we\'ll email you.');
+  const note = prompt('To verify, tell us which broker you transacted with and roughly when. An admin may ask for documentation.');
+  if (note===null) return;
+  let { error } = await sb.from('verification_requests').insert({user_id:user.id, kind:'reviewer', note:(note||'').slice(0,500)});
+  if (error) { ({ error } = await sb.from('verification_requests').insert({user_id:user.id, kind:(note||'reviewer').slice(0,60)})); }
+  toast(error? 'Request already on file or failed.' : 'Verification requested — an admin will review it.');
   closeModal();
 }
 async function signOut(){ await sb.auth.signOut(); closeModal(); toast('Signed out'); }
@@ -745,6 +851,34 @@ async function revokeClaim(bid){
   if (e1.error) return toast(e1.error.message);
   await sb.from('broker_claims').update({status:'rejected'}).eq('broker_id',bid).eq('status','approved');
   toast('Claim revoked — page is unclaimed'); await loadAll(); openManageBrokers();
+}
+
+/* ---------- admin: verification queue ---------- */
+async function openVerifications(){
+  if (!myProfile?.is_admin) return;
+  modal(`<div class="mhead"><h3>Verification requests</h3><button class="x" onclick="closeModal()">✕</button></div>
+    <div class="mbody" id="vq-body"><p class="hint">Loading…</p></div>`);
+  const { data, error } = await sb.from('verification_requests').select('*').eq('status','pending').order('created_at');
+  if (error){ $('#vq-body').innerHTML = `<div class="msg err">${esc(error.message)}</div>`; return; }
+  const rows = data||[];
+  $('#vq-body').innerHTML = `<p class="hint" style="margin-top:-4px">Approving grants the Verified badge and ~2× review weight. Only approve when you're satisfied the person did a real transaction.</p>` + (rows.length ? rows.map(v=>{
+    const p = profilesById[v.user_id];
+    return `<div class="rev"><div class="rtop"><span class="who">${esc(p?.username||'Member')}</span>${p?.tier==='verified'?'<span class="vbadge">already verified</span>':''}<time>${new Date(v.created_at).toLocaleDateString()}</time></div>
+      <div class="rctx">${esc(v.note||v.kind||'No details provided')}</div>
+      <div class="ract"><button class="on" onclick="approveVerify('${v.id}','${v.user_id}')">Approve — grant Verified</button><button class="danger" onclick="rejectVerify('${v.id}')">Reject</button></div></div>`;
+  }).join('') : '<p class="hint">No pending verification requests.</p>');
+}
+async function approveVerify(id, uid){
+  if (!confirm('Grant Verified status to this member? Their reviews will carry ~2× weight and show a Verified badge.')) return;
+  const e1 = await sb.from('profiles').update({tier:'verified'}).eq('id',uid);
+  if (e1.error) return toast(e1.error.message);
+  await sb.from('verification_requests').update({status:'approved'}).eq('id',id);
+  toast('Verified status granted'); await loadAll(); openVerifications();
+}
+async function rejectVerify(id){
+  const { error } = await sb.from('verification_requests').update({status:'rejected'}).eq('id',id);
+  if (error) return toast(error.message);
+  toast('Request rejected'); openVerifications();
 }
 
 /* ---------- modal plumbing ---------- */
