@@ -376,7 +376,12 @@ function render(){
   $('#tcount').textContent = `${list.length} broker${list.length===1?'':'s'}`;
   $('#f-watch').className = 'pill' + (S.watchOnly?' on':'');
   const slice = list.slice(0, S.page*PAGE);
-  if (!list.length){ $('#list').innerHTML = '<div class="empty">No brokers match. Try clearing filters.</div>'; return; }
+  if (!list.length){
+    $('#list').innerHTML = S.watchOnly
+      ? '<div class="empty">Your list is empty. Click the <span style="color:var(--gold2)">★</span> next to any broker\'s name to save them here — handy for comparing brokers you\'re considering.</div>'
+      : '<div class="empty">No brokers match. Try clearing filters.</div>';
+    return;
+  }
   $('#list').innerHTML = slice.map((b,i)=>{
     const sc = scores[b.id];
     const conf = sc ? (sc.conf==='Established'?'est':sc.conf==='Early'?'early':'prov') : 'none';
