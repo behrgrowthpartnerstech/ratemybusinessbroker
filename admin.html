@@ -21,6 +21,7 @@
     <button data-t="verif" onclick="tab('verif')">Verification</button>
     <button data-t="intros" onclick="tab('intros')">Introductions</button>
     <button data-t="reports" onclick="tab('reports')">Reports</button>
+    <button data-t="brokers" onclick="tab('brokers')">Brokers</button>
   </div>
   <div id="out"><div class="skel"></div></div>
 </main>
@@ -62,11 +63,33 @@ async function load(){
     const r=await sb.from('introductions').select('*').eq('status','new').order('created_at');
     $('#out').innerHTML=(r.data||[]).length?r.data.map(i=>`<div class="rev"><div class="rtop"><span class="who">${esc(i.name)}</span><span class="hint">${esc(i.email)} · ${esc([i.state,i.industry,i.deal_size,i.timeline].filter(Boolean).join(' · '))}</span><time>${new Date(i.created_at).toLocaleDateString()}</time></div><div class="rctx">To: ${i.broker_ids.map(b=>esc(bname(b))).join(', ')}${i.priorities.length?' · cares about '+esc(i.priorities.join(', ')):''}</div>${i.note?`<div class="rtxt">${esc(i.note)}</div>`:''}<div class="ract" style="gap:8px"><a class="btn navy sm" href="mailto:${esc(i.email)}?subject=${encodeURIComponent('Introduction: '+i.broker_ids.map(bname).join(', '))}">Draft intro email</a><button class="btn line sm" onclick="intro('${i.id}','sent')">Mark sent</button><button class="btn danger sm" onclick="intro('${i.id}','declined')">Decline</button></div></div>`).join(''):'<p class="hint">No new introduction requests.</p>';
   }
+  if (cur==='brokers'){
+    $('#out').innerHTML = `<div class="tsearch" style="max-width:420px;margin-bottom:12px"><input class="fi" id="bs" placeholder="Search brokers by name, firm, city…" oninput="brokerRows(this.value)"></div>
+      <div class="hint" style="margin-bottom:10px">Revoke = page goes back to unclaimed (owner loses edit access; reviews untouched). Delete = removes the broker AND all their reviews, permanently.</div><div id="brows"></div>`;
+    brokerRows('');
+  }
   if (cur==='reports'){
     const r=await sb.from('reports').select('*').eq('status','open').order('created_at');
     $('#out').innerHTML=(r.data||[]).length?r.data.map(x=>{ const rv=TBI.reviews.find(v=>v.id===x.review_id); return `<div class="rev"><div class="rtop"><span class="who">${esc(x.reason)}</span><span class="hint">by ${esc(who(x.reporter_id))}</span><time>${new Date(x.created_at).toLocaleDateString()}</time></div>${rv?`<div class="rtxt">${esc(rv.text)}</div><div class="rctx">on ${esc(bname(rv.broker_id))}</div>`:'<div class="rctx">(review no longer visible)</div>'}<div class="ract" style="gap:8px"><button class="btn danger sm" onclick="removeRev('${x.review_id}','${x.id}')">Remove review</button><button class="btn line sm" onclick="report('${x.id}','dismissed')">Dismiss report</button></div></div>`; }).join(''):'<p class="hint">No open reports.</p>';
   }
 }
+function brokerRows(q){
+  q=(q||'').trim().toLowerCase();
+  const rows = TBI.brokers.filter(b=>!q || (b.name+' '+b.firm+' '+b.city+' '+b.state).toLowerCase().includes(q)).slice(0,60);
+  $('#brows').innerHTML = rows.map(b=>`<div class="rrow" style="align-items:flex-start"><div style="flex:1;min-width:0"><a class="nm" href="/broker-${esc(b.slug)}.html" target="_blank">${esc(b.name)}</a>${b.claimed_by?' <span class="vpill">✓ claimed by '+esc(who(b.claimed_by))+'</span>':''}<div class="mt">${esc(b.firm)} · ${esc(b.city)}, ${esc(b.state)} · ${(TBI.scores[b.id]||{}).count||0} reviews</div></div>
+    <div style="display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap"><button class="btn line sm" onclick="editBroker('${b.id}')">Edit</button>${b.claimed_by?`<button class="btn line sm" onclick="revoke('${b.id}')">Revoke claim</button>`:''}<button class="btn danger sm" onclick="delBroker('${b.id}')">Delete</button></div></div>`).join('') || '<p class="hint">No matches.</p>';
+}
+async function revoke(bid){ if(!confirm('Return this page to UNCLAIMED? The owner loses edit access immediately. Reviews and scores are unaffected.')) return; const r=await sb.from('brokers').update({claimed_by:null}).eq('id',bid); if(r.error) return TBI.toast(r.error.message); await sb.from('broker_claims').update({status:'rejected'}).eq('broker_id',bid).eq('status','approved'); TBI.toast('Claim revoked'); await TBI.load({force:true}); brokerRows($('#bs').value); }
+async function delBroker(bid){ const b=TBI.brokers.find(x=>x.id===bid); if(!confirm('Delete '+b.name+' AND all their reviews permanently? This cannot be undone.')) return; const r=await sb.from('brokers').delete().eq('id',bid); if(r.error) return TBI.toast(r.error.message); TBI.toast('Deleted. The static page disappears on the next Rebuild broker pages run.'); await TBI.load({force:true}); brokerRows($('#bs').value); }
+function editBroker(bid){ const b=TBI.brokers.find(x=>x.id===bid);
+  TBI.modal(`<div class="mhead"><h3>Edit broker</h3><button class="x" onclick="TBI.closeModal()">✕</button></div><div class="mbody">
+    <div class="cols2" style="grid-template-columns:1fr 1fr;gap:10px"><div><label class="fl" for="eb-name" style="margin-top:0">Name</label><input class="fi" id="eb-name" value="${esc(b.name)}"></div><div><label class="fl" for="eb-firm" style="margin-top:0">Firm</label><input class="fi" id="eb-firm" value="${esc(b.firm)}"></div>
+    <div><label class="fl" for="eb-city">City</label><input class="fi" id="eb-city" value="${esc(b.city)}"></div><div><label class="fl" for="eb-state">State (2 letters)</label><input class="fi" id="eb-state" maxlength="2" value="${esc(b.state)}"></div>
+    <div><label class="fl" for="eb-web">Website</label><input class="fi" id="eb-web" value="${esc(b.website||'')}"></div><div><label class="fl" for="eb-photo">Photo URL</label><input class="fi" id="eb-photo" value="${esc(b.photo||'')}"></div></div>
+    <label class="fl" for="eb-spec">Specialties (separate with |)</label><input class="fi" id="eb-spec" value="${esc(b.specialty||'')}">
+    <label class="fl" for="eb-pin">Rank pin (blank = none)</label><input class="fi" id="eb-pin" type="number" min="1" value="${b.rank_pin||''}">
+    <div class="msg" id="eb-msg"></div><div style="margin-top:14px"><button class="btn navy wide" onclick="saveBroker('${bid}')">Save</button></div></div>`); }
+async function saveBroker(bid){ const m=$('#eb-msg'); const row={name:$('#eb-name').value.trim(),firm:$('#eb-firm').value.trim()||'Independent',city:$('#eb-city').value.trim()||'—',state:($('#eb-state').value.trim().toUpperCase()||'—'),website:$('#eb-web').value.trim(),photo:$('#eb-photo').value.trim(),specialty:$('#eb-spec').value.trim()||'general SMB',rank_pin:$('#eb-pin').value?+$('#eb-pin').value:null}; const r=await sb.from('brokers').update(row).eq('id',bid); if(r.error){m.className='msg err';m.textContent=r.error.message;return;} TBI.closeModal(); TBI.toast('Saved'); await TBI.load({force:true}); brokerRows($('#bs').value); }
 async function approveReq(id){ const slug=prompt('Slug for the new broker page (leave blank to auto-generate):','')||null; const r=await sb.rpc('admin_approve_listing_request',{req:id,p_slug:slug}); if(r.error) return TBI.toast(r.error.message); TBI.toast('Broker created, waiting reviews published. Regenerate pages (GitHub Action) to get the static profile page.'); await TBI.load({force:true}); load(); }
 async function linkExisting(rid){ const s=prompt('Slug of the existing broker to attach this review to:'); if(!s) return; const b=TBI.brokers.find(x=>x.slug===s.trim()); if(!b) return TBI.toast('No broker with that slug'); const r=await sb.rpc('admin_publish_pending_review',{rid,bid:b.id}); if(r.error) return TBI.toast(r.error.message); TBI.toast('Published on '+b.name); load(); }
 async function publish(rid){ const v=(await sb.from('reviews').select('broker_id').eq('id',rid).single()).data; const r=await sb.rpc('admin_publish_pending_review',{rid,bid:v.broker_id}); if(r.error) return TBI.toast(r.error.message); TBI.toast('Published'); load(); }
