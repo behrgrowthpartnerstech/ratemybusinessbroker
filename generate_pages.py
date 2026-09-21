@@ -15,6 +15,8 @@ import json, html, collections, sys, os, re, datetime, urllib.request
 SUPABASE_URL = 'https://qnxmvzrotgnsgyafewbo.supabase.co'
 SUPABASE_KEY = 'sb_publishable_jx_rlrzcPGOWtuimIAw2eA_l46TedX8'  # publishable: safe in public code
 SITE = 'https://ratemybusinessbroker.com'
+REVIEWS_BY, TIERS = {}, {}
+PARAM_NAMES = [('professionalism','Professionalism'),('transparency','Transparency'),('consistency','Consistency'),('collaboration','Collaboration'),('command','Command of the deal'),('documentation','Quality of documentation')]
 OUT = os.path.dirname(os.path.abspath(__file__))
 TODAY = datetime.date.today().isoformat()
 
@@ -36,15 +38,29 @@ def state_slug(name): return name.lower().replace(', d.c.','-dc').replace(' ','-
 def load_brokers():
     if '--from-supabase' in sys.argv:
         req = urllib.request.Request(
-            SUPABASE_URL + '/rest/v1/brokers?select=slug,name,firm,city,state,specialty,photo,website,linkedin,logo,phone,claimed_by&order=name&limit=5000',
+            SUPABASE_URL + '/rest/v1/brokers?select=id,slug,name,firm,city,state,specialty,photo,website,linkedin,logo,phone,claimed_by,bio&order=name&limit=5000',
             headers={'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY})
         rows = json.load(urllib.request.urlopen(req, timeout=60))
     else:
         src = sys.argv[sys.argv.index('--local')+1] if '--local' in sys.argv else 'brokers.json'
         rows = json.load(open(src))
+    global REVIEWS_BY, TIERS
+    REVIEWS_BY, TIERS = {}, {}
+    if '--from-supabase' in sys.argv:
+        try:
+            rq = urllib.request.Request(SUPABASE_URL + '/rest/v1/reviews?select=broker_id,author_id,ratings,side,stage,industry,deal_size,text,created_at&status=eq.published&limit=10000',
+                                        headers={'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY})
+            for r in json.load(urllib.request.urlopen(rq, timeout=60)):
+                REVIEWS_BY.setdefault(r['broker_id'], []).append(r)
+            pq = urllib.request.Request(SUPABASE_URL + '/rest/v1/profiles?select=id,username,tier&limit=10000',
+                                        headers={'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY})
+            for pr in json.load(urllib.request.urlopen(pq, timeout=60)): TIERS[pr['id']] = pr
+        except Exception as e:
+            print('warning: reviews not fetched, pages will carry scores via JS only:', e)
     clean = []
-    for b in rows:
-        b = {k: (str(b.get(k) or '')).strip() for k in ('slug','name','firm','city','state','specialty','photo','website','linkedin','logo','phone','claimed_by')}
+    for raw in rows:
+        b = {k: (str(raw.get(k) or '')).strip() for k in ('slug','name','firm','city','state','specialty','photo','website','linkedin','logo','phone','claimed_by','bio')}
+        b['id'] = str(raw.get('id') or '')
         if b['slug'] and b['name'] and re.fullmatch(r'[a-z0-9\-]+', b['slug']):
             clean.append(b)
     return clean
@@ -136,6 +152,7 @@ def gen_broker_page(b, n_state):
     crumbs["itemListElement"].append({"@type":"ListItem","position":len(crumbs["itemListElement"])+1,"name":name,"item":f"{SITE}/{fname}"})
     jsonld = ('<script type="application/ld+json">\n' + json.dumps(person, ensure_ascii=False) + '\n</script>\n'
               '<script type="application/ld+json">\n' + json.dumps(crumbs, ensure_ascii=False) + '\n</script>')
+    # (AggregateRating is appended below once reviews are known)
 
     face = (f'<img class="face" src="{esc(b["photo"])}" alt="{esc(name)}, business broker" onerror="this.outerHTML=\'<div class=&quot;ph&quot;>{initials}</div>\'">'
             if b['photo'] else f'<div class="ph">{initials}</div>')
@@ -153,6 +170,8 @@ def gen_broker_page(b, n_state):
     spec_sent = f' Their listed focus areas include {esc(spec)}.' if spec else ''
     firm_sent = f' with {esc(firm)}' if firm and firm != 'Independent' else (' operating independently' if firm == 'Independent' else '')
     review_url = f'/write-a-review.html?broker={b["slug"]}'
+    revs = sorted(REVIEWS_BY.get(b['id'], []), key=lambda r: r.get('created_at',''), reverse=True)
+    static_live, agg_ld = static_reviews_block(b, revs, first, review_url)
     claim_html = '' if b['claimed_by'] else (
         '<div class="claimbox"><h3>Are you ' + esc(name) + '?</h3>'
         '<p><a href="/claim.html?broker=' + b['slug'] + '"><b>Claim this profile</b></a> — free — to confirm your details, show a Verified mark, '
@@ -177,7 +196,7 @@ def gen_broker_page(b, n_state):
     </div>
   </div>
 
-  <div id="live"><div class="skel"></div></div>
+  <div id="live">{static_live}</div>
 
   <div class="panel section">
     <h2 style="font-size:20px">About this listing</h2>
@@ -194,7 +213,56 @@ def gen_broker_page(b, n_state):
   </div>
 </main>
 <script>document.addEventListener('DOMContentLoaded',function(){{ var t=setInterval(function(){{ if(window.TBI){{ clearInterval(t); TBI.ready.then(function(){{ TBI.renderBrokerLive({json.dumps(b['slug'])}, document.getElementById('live')); }}); }} }},30); }});</script>'''
+    if agg_ld: jsonld += '\n<script type="application/ld+json">\n' + json.dumps(agg_ld, ensure_ascii=False) + '\n</script>'
     return head(title, desc, fname, jsonld, ogimg=b['photo'] or None) + body + FOOT
+
+def static_reviews_block(b, revs, first, review_url):
+    """Static HTML for the score + reviews so crawlers see the unique content without JS.
+    Plain (unweighted) averages here; _app.js swaps in the weighted score on load."""
+    def overall(r):
+        v = [float(x) for x in (r.get('ratings') or {}).values() if 1 <= float(x) <= 5]
+        return (sum(v) / len(v)) * 2 if v else None
+    ov = [x for x in (overall(r) for r in revs) if x is not None]
+    if not ov:
+        return (f'<div class="panel"><div class="scorebox"><div class="lab">Overall</div><div class="big" style="font-size:22px;color:var(--mut)">Not yet rated</div><div class="n">Be the first to rate {esc(first)}</div></div></div>'
+                f'<div class="section"><div class="sechead"><h2>Reviews <span class="chip">0</span></h2><a class="btn gold" href="{review_url}">Write a review</a></div><p class="hint">No reviews yet. Worked with {esc(first)}? Your review starts their record.</p></div>', None)
+    avg = sum(ov) / len(ov)
+    def side_avg(side):
+        xs = [overall(r) for r in revs if r.get('side') == side]; xs = [x for x in xs if x is not None]
+        return (sum(xs) / len(xs), len(xs)) if xs else None
+    sa, ba = side_avg('seller'), side_avg('buyer')
+    box = lambda lab, v, n, cls='': (f'<div class="panel {cls}"><div class="scorebox"><div class="lab">{lab}</div>' + (f'<div class="big">{v:.2f}<small>/ 10</small></div><div class="n">{n} review{"" if n==1 else "s"}</div>' if v is not None else '<div class="big" style="font-size:18px;color:var(--mut)">Not yet rated</div>') + '</div></div>')
+    html_out = '<div class="cols3">' + box('Overall', avg, len(ov), 'navy') + box('Rated by sellers', sa[0] if sa else None, sa[1] if sa else 0) + box('Rated by buyers', ba[0] if ba else None, ba[1] if ba else 0) + '</div>'
+    # parameter averages
+    prow = ''
+    for k, lab in PARAM_NAMES:
+        vs = [float((r.get('ratings') or {}).get(k, 0)) for r in revs if (r.get('ratings') or {}).get(k)]
+        if vs:
+            m = sum(vs) / len(vs) * 2
+            prow += f'<div class="prow"><span>{lab}</span><span class="bar"><i style="width:{m*10:.0f}%"></i></span><b>{m:.2f}</b></div>'
+    if prow: html_out += f'<div class="panel section"><h2 style="font-size:20px">Rated parameters</h2><div class="params">{prow}</div></div>'
+    items = ''
+    for r in revs[:20]:
+        o = overall(r); p = TIERS.get(r.get('author_id'), {})
+        when = (r.get('created_at') or '')[:10]
+        try: when = datetime.date.fromisoformat(when).strftime('%b %Y')
+        except Exception: pass
+        side = r.get('side') or ''
+        items += (f'<div class="rev"><div class="rtop"><span class="who">{esc(p.get("username") or "Member")}</span>'
+                  + ('<span class="vbadge">Verified</span>' if p.get('tier') == 'verified' else '')
+                  + (f'<span class="sidetag {"sell" if side=="seller" else "buy"}">{side.title()}</span>' if side in ('seller','buyer') else '')
+                  + (f'<span class="rscore">{o:.2f}<small style="color:var(--mut);font-weight:400"> /10</small></span>' if o is not None else '')
+                  + f'<time>{esc(when)}</time></div>'
+                  + (f'<div class="rtxt">{esc(r.get("text") or "")}</div>' if r.get('text') else '')
+                  + f'<div class="rctx">{esc(" · ".join(x for x in (r.get("stage"), r.get("industry"), r.get("deal_size")) if x))}</div></div>')
+    html_out += f'<div class="section"><div class="sechead"><h2>Reviews <span class="chip">{len(revs)}</span></h2><a class="btn gold" href="{review_url}">Write a review</a></div>{items}</div>'
+    agg = {"@context":"https://schema.org","@type":"Person","name":b['name'],"url":f"{SITE}/{broker_fname(b)}",
+           "aggregateRating":{"@type":"AggregateRating","ratingValue":round(avg,2),"bestRating":10,"worstRating":0,"ratingCount":len(ov)},
+           "review":[{"@type":"Review","author":{"@type":"Person","name":TIERS.get(r.get('author_id'),{}).get('username') or 'Member'},
+                      "datePublished":(r.get('created_at') or '')[:10],"reviewBody":(r.get('text') or '')[:500],
+                      "reviewRating":{"@type":"Rating","ratingValue":round(overall(r),2),"bestRating":10,"worstRating":0}}
+                     for r in revs[:10] if overall(r) is not None]}
+    return html_out, agg
 
 # ---------------------------------------------------------------- state pages
 def broker_card(b):
