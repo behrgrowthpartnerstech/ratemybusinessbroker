@@ -46,6 +46,7 @@ function profileCard(){
       <div><b class="serif" style="font-size:20px">${esc(P.target_size||'—')}</b><div class="hint">Target size</div></div>
     </div>
     <div style="margin-top:16px"><div class="hint" style="font-weight:700;letter-spacing:.6px;text-transform:uppercase;margin-bottom:8px">Earned</div>${TBI.renderShields(P.id)}</div>
+    ${own&&TBI.brokers.some(b=>b.claimed_by===P.id)?`<a class="btn gold wide" style="margin-top:16px" href="/broker-dashboard.html">Manage your broker page</a>`:''}
     ${own?`<div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn line sm" onclick="editProfile()">Edit profile</button><button class="btn line sm" onclick="TBI.signOut()">Sign out</button>${P.is_admin?'<a class="btn navy sm" href="/admin.html">Admin</a>':''}</div>`:''}
   </div>`;
 }

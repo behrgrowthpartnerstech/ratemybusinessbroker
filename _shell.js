@@ -40,6 +40,7 @@
       ['/methodology.html', 'Methodology'],
       ['/articles.html', 'Articles'],
       ['/claim.html', 'Brokers: claim your page'],
+      ['/broker-dashboard.html', 'Brokers: manage your page'],
       ['mailto:hello@ratemybusinessbroker.com', 'Contact'] ] }
   ];
 

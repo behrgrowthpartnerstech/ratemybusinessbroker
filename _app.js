@@ -21,9 +21,9 @@
     ['documentation', 'Quality of documentation', 'CIMs, financials, paperwork']
   ];
 
-  // Minimum review counts before a number is shown. Raise these (5 / 3 / 8 / 15)
-  // once volume allows — see the spec, section 11. One place to change them.
-  var MIN = { score: 3, side: 2, rank: 5, firm: 8, firmAgents: 2 };
+  // Minimum review counts before a number is shown. A broker is ranked from the
+  // first review (owner decision, Sept 20). Raise these once volume allows — one place.
+  var MIN = { score: 1, side: 1, rank: 1, firm: 3, firmAgents: 1 };
   var STAT_FLOOR = 25;   // hero counters hide below this (never show "0 reviews" in the hero)
   var GATE = 100;        // brokers visible on the homepage before sign-in
 
@@ -222,7 +222,7 @@
   T.shown = function (sc) { return sc && sc.count >= MIN.score ? sc : null; };
   T.shownSide = function (sc, side) { var s = sc && sc[side]; return s && s.count >= MIN.side ? s : null; };
   T.modeScore = function (bid, mode) { var s = T.scores[bid]; if (!s) return null; return mode === 'overall' ? T.shown(s) : T.shownSide(s, mode); };
-  T.fmt = function (v) { return v.toFixed(1); };
+  T.fmt = function (v) { return v.toFixed(2); };
   T.confClass = function (c) { return c === 'Established' ? 'est' : c === 'Early' ? 'early' : 'prov'; };
   T.reviewOverall = function (r) { var v = Object.keys(r.ratings || {}).map(function (k) { return Number(r.ratings[k]); }).filter(function (x) { return x >= 1; }); return v.length ? to10(v.reduce(function (a, b) { return a + b; }, 0) / v.length) : null; };
 
@@ -342,7 +342,7 @@
     var sc = T.scores[b.id], full = T.shown(sc), s = T.shownSide(sc, 'seller'), u = T.shownSide(sc, 'buyer');
     var revs = T.reviews.filter(function (r) { return r.broker_id === b.id; }).sort(function (a, c) { return new Date(c.created_at) - new Date(a.created_at); });
     var first = b.name.split(' ')[0];
-    var box = function (lab, x, cls, who) { return '<div class="panel ' + (cls || '') + '"><div class="scorebox"><div class="lab">' + lab + '</div>' + (x ? '<div class="big' + (who === 'buy' ? ' gold' : '') + '">' + T.fmt(x.score) + '<small>/ 10</small></div><div class="n">' + x.count + ' review' + (x.count === 1 ? '' : 's') + (who ? ' from ' + who + 's' : ' · ' + x.conf) + '</div>' : '<div class="big" style="font-size:22px;color:var(--mut)">Not enough reviews yet</div><div class="n">' + (sc ? sc.count + ' so far — shown at ' + MIN.score : 'Be the first to rate ' + esc(first)) + '</div>') + '</div></div>'; };
+    var box = function (lab, x, cls, who) { return '<div class="panel ' + (cls || '') + '"><div class="scorebox"><div class="lab">' + lab + '</div>' + (x ? '<div class="big' + (who === 'buy' ? ' gold' : '') + '">' + T.fmt(x.score) + '<small>/ 10</small></div><div class="n">' + x.count + ' review' + (x.count === 1 ? '' : 's') + (who ? ' from ' + who + 's' : ' · ' + x.conf) + '</div>' : '<div class="big" style="font-size:22px;color:var(--mut)">Not yet rated</div><div class="n">Be the first to rate ' + esc(first) + '</div>') + '</div></div>'; };
     var cmp = '';
     if (s || u) {
       cmp = '<div class="panel section"><div class="sechead"><div><h2>How buyers and sellers see ' + esc(first) + '</h2><p class="sub">Same six parameters, rated separately by each side of the table.</p></div><div class="legend"><span><i></i>Sellers</span><span><i class="buy"></i>Buyers</span></div></div>'
@@ -352,10 +352,43 @@
     } else if (full) {
       cmp = '<div class="panel section"><h2>Rated parameters</h2><div class="params">' + PARAMS.filter(function (p) { return full.params[p[0]]; }).map(function (p) { return '<div class="prow"><span>' + p[1] + '</span><span class="bar"><i style="width:' + (full.params[p[0]] * 10) + '%"></i></span><b>' + T.fmt(full.params[p[0]]) + '</b></div>'; }).join('') + '</div></div>';
     }
-    el.innerHTML = '<div class="cols3">' + box('Overall', full, 'navy') + box('Rated by sellers', s, '', 'seller') + box('Rated by buyers', u, '', 'buyer') + '</div>' + cmp
+    var bio = b.bio ? '<div class="panel section"><h2 style="font-size:20px">About ' + esc(first) + '</h2><p style="margin-top:8px;font-size:15px;line-height:1.6;color:var(--ink2);white-space:pre-wrap">' + esc(b.bio) + '</p><p class="hint" style="margin-top:8px">Written by the broker. Reviews and scores are independent.</p></div>' : '';
+    el.innerHTML = '<div class="cols3">' + box('Overall', full, 'navy') + box('Rated by sellers', s, '', 'seller') + box('Rated by buyers', u, '', 'buyer') + '</div>' + cmp + bio
       + '<div class="section"><div class="sechead"><h2>Reviews <span class="chip">' + revs.length + '</span></h2><a class="btn gold" href="/write-a-review.html?broker=' + esc(slug) + '">Write a review</a></div>'
-      + (revs.length ? revs.map(function (r) { return T.renderReview(r); }).join('') : '<p class="hint">No reviews yet. Worked with ' + esc(first) + '? Your review starts their record.</p>') + '</div>';
+      + (revs.length ? revs.map(function (r) { return T.renderReview(r); }).join('') : '<p class="hint">No reviews yet. Worked with ' + esc(first) + '? Your review starts their record.</p>') + '</div>'
+      + '<div id="listings"></div>';
+    T.renderListings(b, document.getElementById('listings'));
     var save = document.getElementById('save-list'); if (save) { await T.loadMyList(); var paint = function () { save.textContent = T.inList(b.id) ? '★ Saved to My List' : '☆ Save to My List'; }; paint(); save.onclick = async function (e) { e.preventDefault(); if (await T.toggleList(b.id)) paint(); }; }
+  };
+
+
+  /* ------------------------------------------------------------ broker listings (claimed pages only; compact, below reviews) */
+  T.renderListings = async function (b, el) {
+    if (!el || !b.claimed_by) return;
+    var r = await sb.from('listings').select('id,title,industry,state,price_label,summary,url,contact_email').eq('broker_id', b.id).eq('status', 'active').order('created_at');
+    var ls = r.data || []; if (!ls.length) return;
+    var first = b.name.split(' ')[0];
+    el.innerHTML = '<details class="section" style="border:1px solid var(--line2);border-radius:14px;background:var(--card);padding:0 20px">'
+      + '<summary style="cursor:pointer;padding:16px 0;font-weight:700;color:var(--ink);display:flex;justify-content:space-between;align-items:center"><span>Businesses ' + esc(first) + ' is currently representing <span class="chip">' + ls.length + '</span></span><span class="hint">Posted by the broker</span></summary>'
+      + '<div class="rlist" style="padding-bottom:16px">' + ls.map(function (l) {
+        return '<div class="rrow" style="align-items:flex-start"><div style="flex:1;min-width:0"><div class="nm">' + esc(l.title) + '</div><div class="mt">' + esc([l.industry, l.state, l.price_label].filter(Boolean).join(' \u00b7 ')) + '</div>' + (l.summary ? '<div class="mt" style="margin-top:4px;color:var(--ink2)">' + esc(l.summary) + '</div>' : '') + '</div>'
+          + '<div style="display:flex;gap:6px;flex-shrink:0">' + (l.url ? '<a class="btn line sm" target="_blank" rel="noopener nofollow" href="' + esc(l.url) + '">Details</a>' : '') + '<button class="btn navy sm" onclick="TBI.inquire(\'' + l.id + '\',\'' + esc(l.title).replace(/'/g, '&#39;') + '\')">Inquire</button></div></div>';
+      }).join('') + '</div><p class="hint" style="padding-bottom:14px">Listings are posted by the broker and don\u2019t affect their rating. Your inquiry goes to the broker only.</p></details>';
+  };
+  T.inquire = function (lid, title) {
+    modal('<div class="mhead"><h3>Inquire about this listing</h3><button class="x" onclick="TBI.closeModal()">&#10005;</button></div><div class="mbody">'
+      + '<p class="hint">' + esc(title) + '</p>'
+      + '<label class="fl" for="iq-name">Your name</label><input class="fi" id="iq-name" maxlength="80" value="' + esc((T.me && T.me.username) || '') + '">'
+      + '<label class="fl" for="iq-email">Email</label><input class="fi" id="iq-email" type="email" value="' + esc((T.user && T.user.email) || '') + '">'
+      + '<label class="fl" for="iq-msg">Message</label><textarea class="fi" id="iq-msg" maxlength="800" style="min-height:90px" placeholder="What you\u2019d like to know, and a line about you as a buyer."></textarea>'
+      + '<div class="msg" id="iq-m"></div><div style="margin-top:14px"><button class="btn navy wide" onclick="TBI.sendInquiry(\'' + lid + '\')">Send to the broker</button></div></div>', true);
+  };
+  T.sendInquiry = async function (lid) {
+    var m = $('#iq-m'), name = $('#iq-name').value.trim(), email = $('#iq-email').value.trim();
+    if (!name || !/.+@.+\..+/.test(email)) { m.className = 'msg err'; m.textContent = 'Name and a valid email are required.'; return; }
+    var r = await sb.from('listing_inquiries').insert({ listing_id: lid, user_id: T.user ? T.user.id : null, name: name, email: email, message: $('#iq-msg').value.trim() });
+    if (r.error) { m.className = 'msg err'; m.textContent = r.error.message; return; }
+    closeModal(); toast('Sent. The broker will reply to your email.');
   };
 
   /* ------------------------------------------------------------ boot */

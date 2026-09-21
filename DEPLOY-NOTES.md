@@ -6,8 +6,8 @@ Upload these files to the repo root (they replace `index.html`, `_shared.css`, `
 
 ## Ship order (GitHub Pages + Supabase — ≈20 minutes)
 
-1. **Database** — Supabase → SQL Editor → New query → paste `migration-6-ux-round.sql` → Run.
-   Do this *before* deploying; the new pages query columns it creates. Safe to re-run.
+1. **Database** — Supabase → SQL Editor → New query → paste `migration-6-ux-round.sql` → Run, then the same
+   for `migration-7-broker-owner.sql`. Do this *before* deploying. Both are safe to re-run.
 2. **Upload to the repo** — on github.com open the repo → **Add file → Upload files** → drag in everything
    from this folder (including the `.github`, `scripts` and `supabase` folders and the hidden `.nojekyll`).
    Say yes to replacing `index.html`, `_shared.css`, `generate_pages.py`. Commit to `main`.
@@ -57,11 +57,21 @@ the new sitemap automatically. If Google keeps showing them, remove them in Sear
 | HOME-4 starred list | Gone from homepage; ★ on a card saves to My List (ranked). |
 | ACCT-1..5 | `account.html` — public profile (`?u=username`), ranked My List with arrows + private notes + public/private toggle, shield badges **earned only**, no points anywhere, deal-activity dashboard (log interactions → KPIs, funnel, broker reply times). |
 | Section 8 rankings | `brokerage-rankings.html` — firm score 70 / consistency 20 / coverage 10, state filter, `?firm=` opens the per-firm agent report (RPT-2 web version). Shows a "not enough data" panel until firms clear the minimum. |
+| Broker dashboard | `broker-dashboard.html` — after a claim is approved the owner gets a notification and a "Manage your broker page" button on their account page. They can edit details/bio and manage up to 5 listings; reviews, scores, slug and ownership are locked by a DB trigger. Listings appear as a collapsed section *below* reviews on the public page with an Inquire form (`listing_inquiries`). |
 | Section 9 claim | `claim.html` — search listing, work email, verification method, evidence → `broker_claims` → admin. Linked from the entry modal, footer, every unclaimed broker page. |
 | RPT-1 monthly email | `scripts/monthly-broker-digest.js` run by `.github/workflows/monthly-digest.yml`, 1st of month. Skips brokers with no change and no new reviews; suppresses composite below minimum; one-click opt-out (`/account.html?digest=off`). |
 | Metrics (section 11) | `_app.js` top: `MIN = {score:3, side:2, rank:5, firm:8, firmAgents:2}`. Raise to 5/3/8/15 when volume allows — one place. |
 | Meta descriptions | Every page has a distinct, written description; homepage title/description rewritten; `og-image.png`. |
 | Logo in search results | `favicon.ico` (multi-size) + `favicon.svg` + `apple-touch-icon.png` + `logo-512.png`, Organization + WebSite JSON-LD on the homepage. |
+
+## Indexing of broker pages (Search Console "Affected pages" report)
+Broker pages now carry their scores, parameter averages, the latest 20 reviews and `AggregateRating` /
+`Review` structured data **in the static HTML** — the generator fetches reviews at build time, and `_app.js`
+swaps in the weighted score after load. Google no longer needs to render JS to see what makes each page
+unique, and rated brokers can show a rating snippet in results. Pages regenerate on every generator run,
+so a newly published review reaches the static page on the next run (schedule it daily if it isn't).
+Give Google 2–4 weeks after the rebuild before judging the index count; pages with reviews get indexed
+first, and unrated pages with identical template text may stay "crawled – not indexed" until they have one.
 
 ## Admin moved
 The admin tools left the homepage and live at `/admin.html` (link appears on your account page). Tabs:
@@ -81,7 +91,7 @@ _shared.css  _shell.js  _app.js  index.html
 find-my-perfect-broker.html  write-a-review.html  account.html  tools.html
 brokerage-rankings.html  claim.html  admin.html
 prospective-sellers.html  prospective-buyers.html  privacy.html  terms.html
-generate_pages.py  migration-6-ux-round.sql  .nojekyll
+generate_pages.py  migration-6-ux-round.sql  migration-7-broker-owner.sql  broker-dashboard.html  .nojekyll
 supabase/functions/screen-review/index.ts  scripts/monthly-broker-digest.js  .github/workflows/monthly-digest.yml
 favicon.ico favicon.svg favicon.png favicon-16.png favicon-32.png apple-touch-icon.png icon-192.png logo-512.png og-image.png
 ```
