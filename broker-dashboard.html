@@ -21,6 +21,17 @@
 <script>
 const $=TBI.$, esc=TBI.esc, sb=TBI.sb;
 let B=null, listings=[], inquiries={};
+const BUCKET='listing-media', PUB=TBI.sb.storage.from(BUCKET);
+const pubUrl = path => PUB.getPublicUrl(path).data.publicUrl + '?v=' + Date.now();
+async function upload(path, file, kinds, maxMB){
+  if (!file) return null;
+  if (!kinds.includes(file.type)) throw new Error('Unsupported file type: ' + (file.type||'unknown'));
+  if (file.size > maxMB*1048576) throw new Error('File is over ' + maxMB + ' MB');
+  const r = await PUB.upload(path, file, { upsert: true, contentType: file.type, cacheControl: '3600' });
+  if (r.error) throw new Error(r.error.message);
+  return pubUrl(path);
+}
+const IMG=['image/jpeg','image/png','image/webp'], PDF=['application/pdf'];
 const STATES=['AL','AK','AZ','AR','CA','CO','CT','DE','DC','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'];
 
 function scorePanel(){
@@ -44,7 +55,7 @@ function detailsPanel(){
       <div><label class="fl" for="d-web">Website</label><input class="fi" id="d-web" maxlength="200" placeholder="https://" value="${esc(B.website||'')}"></div>
       <div><label class="fl" for="d-li">LinkedIn</label><input class="fi" id="d-li" maxlength="200" placeholder="https://linkedin.com/in/…" value="${esc(B.linkedin||'')}"></div>
       <div><label class="fl" for="d-phone">Phone</label><input class="fi" id="d-phone" maxlength="30" value="${esc(B.phone||'')}"></div>
-      <div><label class="fl" for="d-photo">Photo URL</label><input class="fi" id="d-photo" maxlength="300" placeholder="https://…/headshot.jpg" value="${esc(B.photo||'')}"></div>
+      <div><label class="fl" for="d-photo">Profile photo</label><div style="display:flex;gap:10px;align-items:center">${B.photo?`<img src="${esc(B.photo)}" alt="" style="width:44px;height:44px;border-radius:10px;object-fit:cover;border:1px solid var(--line2)">`:''}<input class="fi" id="d-photo" type="file" accept="image/jpeg,image/png,image/webp"></div><div class="hint">JPG, PNG or WebP, up to 5 MB. Square headshots look best.</div></div>
     </div>
     <label class="fl" for="d-spec">Specialties <span class="hint" style="display:inline">(separate with |, e.g. Manufacturing | Healthcare | $2M–$10M deals)</span></label><input class="fi" id="d-spec" maxlength="200" value="${esc(specs)}">
     <label class="fl" for="d-bio">About you</label><textarea class="fi" id="d-bio" maxlength="1200" style="min-height:110px" placeholder="Who you work with, what you specialise in, how long you've been brokering. Plain facts read better than sales copy here.">${esc(B.bio||'')}</textarea>
@@ -52,33 +63,43 @@ function detailsPanel(){
     <div style="margin-top:14px"><button class="btn navy" type="submit">Save details</button></div></form></div>`;
 }
 async function saveDetails(){
-  const m=$('#d-msg'); const row={ name:$('#d-name').value.trim(), firm:$('#d-firm').value.trim()||'Independent', city:$('#d-city').value.trim()||'—', state:$('#d-state').value, website:$('#d-web').value.trim(), linkedin:$('#d-li').value.trim(), phone:$('#d-phone').value.trim(), photo:$('#d-photo').value.trim(), specialty:$('#d-spec').value.trim()||'general SMB', bio:$('#d-bio').value.trim() };
+  const m=$('#d-msg'); const row={ name:$('#d-name').value.trim(), firm:$('#d-firm').value.trim()||'Independent', city:$('#d-city').value.trim()||'—', state:$('#d-state').value, website:$('#d-web').value.trim(), linkedin:$('#d-li').value.trim(), phone:$('#d-phone').value.trim(), specialty:$('#d-spec').value.trim()||'general SMB', bio:$('#d-bio').value.trim() };
+  const f=$('#d-photo').files[0];
+  if (f){ try { m.className='msg warn'; m.textContent='Uploading photo…'; row.photo = await upload(B.id+'/profile/photo.'+(f.type==='image/png'?'png':f.type==='image/webp'?'webp':'jpg'), f, IMG, 5); } catch(e){ m.className='msg err'; m.textContent='Photo: '+e.message; return; } }
   const r=await sb.from('brokers').update(row).eq('id',B.id);
   if(r.error){ m.className='msg err'; m.textContent=r.error.message; return; }
-  Object.assign(B,row); m.className='msg ok'; m.textContent='Saved.'; TBI.toast('Details saved');
+  Object.assign(B,row); m.className='msg ok'; m.textContent='Saved.'; TBI.toast('Details saved'); paint();
 }
 
 function listingsPanel(){
   const active=listings.filter(l=>l.status==='active'), inactive=listings.filter(l=>l.status!=='active');
-  const row=l=>`<div class="rrow" style="align-items:flex-start"><div style="flex:1;min-width:0"><div class="nm">${esc(l.title)} ${l.status!=='active'?'<span class="pendtag">inactive</span>':''}</div><div class="mt">${esc([l.industry,l.state,l.price_label].filter(Boolean).join(' · '))}${inquiries[l.id]?' · <b>'+inquiries[l.id]+' inquir'+(inquiries[l.id]===1?'y':'ies')+'</b>':''}</div>${l.summary?`<div class="mt" style="margin-top:4px;color:var(--ink2)">${esc(l.summary)}</div>`:''}</div>
+  const row=l=>`<div class="rrow" style="align-items:flex-start">${l.photo_url?`<img src="${esc(l.photo_url)}" alt="" style="width:56px;height:56px;border-radius:8px;object-fit:cover;border:1px solid var(--line2);flex:none">`:''}<div style="flex:1;min-width:0"><div class="nm">${esc(l.title)} ${l.status!=='active'?'<span class="pendtag">inactive</span>':''}</div><div class="mt">${esc([l.industry,l.state,l.price_label].filter(Boolean).join(' · '))}${inquiries[l.id]?' · <b>'+inquiries[l.id]+' inquir'+(inquiries[l.id]===1?'y':'ies')+'</b>':''}</div>${l.summary?`<div class="mt" style="margin-top:4px;color:var(--ink2)">${esc(l.summary)}</div>`:''}${l.teaser_url?`<div class="mt" style="margin-top:4px"><a href="${esc(l.teaser_url)}" target="_blank" rel="noopener">Teaser PDF ↗</a></div>`:''}</div>
     <div style="display:flex;gap:6px;flex-shrink:0"><button class="btn line sm" onclick="editListing('${l.id}')">Edit</button><button class="btn line sm" onclick="toggleListing('${l.id}','${l.status==='active'?'inactive':'active'}')">${l.status==='active'?'Deactivate':'Activate'}</button><button class="x" title="Delete" onclick="delListing('${l.id}')">✕</button></div></div>`;
   return `<div class="panel"><div class="sechead"><div><h2>Your listings</h2><p class="sub">Businesses you currently represent. Up to 5 active, shown in a compact section at the bottom of your page. Buyers can send you an inquiry from there.</p></div><button class="btn line sm" ${active.length>=5?'disabled title="5 active max — deactivate one first"':''} onclick="editListing()">＋ Add listing</button></div>
     ${listings.length?`<div class="rlist">${active.map(row).join('')}${inactive.map(row).join('')}</div>`:'<p class="hint">No listings yet. Listings are optional — your rating is what most visitors come for.</p>'}</div>`;
 }
 function editListing(id){
-  const l = id ? listings.find(x=>x.id===id) : { title:'', industry:'', state:B.state==='—'?'':B.state, price_label:'Inquire for price', summary:'', url:'', contact_email:'' };
+  const l = id ? listings.find(x=>x.id===id) : { title:'', industry:'', state:B.state==='—'?'':B.state, price_label:'Inquire for price', summary:'', url:'', contact_email:'', photo_url:'', teaser_url:'' };
   TBI.modal(`<div class="mhead"><h3>${id?'Edit':'New'} listing</h3><button class="x" onclick="TBI.closeModal()">✕</button></div><div class="mbody">
     <label class="fl" for="l-title" style="margin-top:0">Title <span class="req">*</span></label><input class="fi" id="l-title" maxlength="90" placeholder="e.g. Commercial HVAC contractor, Denver metro" value="${esc(l.title)}">
     <div class="cols3"><div><label class="fl" for="l-ind">Industry</label><input class="fi" id="l-ind" maxlength="40" value="${esc(l.industry)}"></div><div><label class="fl" for="l-state">State</label><input class="fi" id="l-state" maxlength="30" value="${esc(l.state)}"></div><div><label class="fl" for="l-price">Price</label><input class="fi" id="l-price" maxlength="40" value="${esc(l.price_label)}"></div></div>
     <label class="fl" for="l-sum">One-paragraph summary <span class="hint" style="display:inline">(max 240 chars, no identifying details)</span></label><textarea class="fi" id="l-sum" maxlength="240" style="min-height:80px">${esc(l.summary)}</textarea>
-    <div class="cols2" style="grid-template-columns:1fr 1fr;gap:12px"><div><label class="fl" for="l-url">Link to full listing</label><input class="fi" id="l-url" maxlength="300" placeholder="https://" value="${esc(l.url)}"></div><div><label class="fl" for="l-email">Inquiry email <span class="req">*</span></label><input class="fi" id="l-email" maxlength="120" type="email" value="${esc(l.contact_email||'')}"></div></div>
+    <div class="cols2" style="grid-template-columns:1fr 1fr;gap:12px"><div><label class="fl" for="l-url">Link to full listing</label><input class="fi" id="l-url" maxlength="300" placeholder="https://" value="${esc(l.url)}"></div><div><label class="fl" for="l-email">Inquiry email <span class="req">*</span></label><input class="fi" id="l-email" maxlength="120" type="email" value="${esc(l.contact_email||'')}"></div>
+    <div><label class="fl" for="l-photo">Photo</label>${l.photo_url?`<img src="${esc(l.photo_url)}" alt="" style="width:100%;max-height:120px;object-fit:cover;border-radius:8px;margin-bottom:6px">`:''}<input class="fi" id="l-photo" type="file" accept="image/jpeg,image/png,image/webp"><div class="hint">JPG/PNG/WebP, up to 5 MB</div></div>
+    <div><label class="fl" for="l-pdf">Teaser PDF</label>${l.teaser_url?`<div class="hint" style="margin-bottom:6px"><a href="${esc(l.teaser_url)}" target="_blank">Current PDF ↗</a></div>`:''}<input class="fi" id="l-pdf" type="file" accept="application/pdf"><div class="hint">Blind teaser only — no identifying details, up to 5 MB</div></div></div>
     <div class="msg" id="l-msg"></div><div style="margin-top:14px"><button class="btn navy wide" onclick="saveListing(${id?`'${id}'`:'null'})">Save listing</button></div></div>`);
 }
 async function saveListing(id){
   const m=$('#l-msg'); const row={ broker_id:B.id, title:$('#l-title').value.trim(), industry:$('#l-ind').value.trim(), state:$('#l-state').value.trim(), price_label:$('#l-price').value.trim()||'Inquire for price', summary:$('#l-sum').value.trim(), url:$('#l-url').value.trim(), contact_email:$('#l-email').value.trim() };
   if(!row.title||!row.contact_email){ m.className='msg err'; m.textContent='Title and inquiry email are required.'; return; }
-  const r = id ? await sb.from('listings').update(row).eq('id',id) : await sb.from('listings').insert(row);
+  const r = id ? await sb.from('listings').update(row).eq('id',id).select('id').single() : await sb.from('listings').insert(row).select('id').single();
   if(r.error){ m.className='msg err'; m.textContent=r.error.message; return; }
+  const lid = r.data.id, photo=$('#l-photo').files[0], pdf=$('#l-pdf').files[0], media={};
+  try {
+    if (photo){ m.className='msg warn'; m.textContent='Uploading photo…'; media.photo_url = await upload(B.id+'/'+lid+'/photo.'+(photo.type==='image/png'?'png':photo.type==='image/webp'?'webp':'jpg'), photo, IMG, 5); }
+    if (pdf){ m.className='msg warn'; m.textContent='Uploading PDF…'; media.teaser_url = await upload(B.id+'/'+lid+'/teaser.pdf', pdf, PDF, 5); }
+    if (Object.keys(media).length){ const u=await sb.from('listings').update(media).eq('id',lid); if(u.error) throw new Error(u.error.message); }
+  } catch(e){ m.className='msg err'; m.textContent='Listing saved, but the file upload failed: '+e.message+' — edit the listing to try again.'; await loadListings(); paint(); return; }
   TBI.closeModal(); TBI.toast('Listing saved'); await loadListings(); paint();
 }
 async function toggleListing(id,status){ const r=await sb.from('listings').update({status}).eq('id',id); if(r.error) return TBI.toast(r.error.message); await loadListings(); paint(); }

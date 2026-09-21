@@ -365,14 +365,14 @@
   /* ------------------------------------------------------------ broker listings (claimed pages only; compact, below reviews) */
   T.renderListings = async function (b, el) {
     if (!el || !b.claimed_by) return;
-    var r = await sb.from('listings').select('id,title,industry,state,price_label,summary,url,contact_email').eq('broker_id', b.id).eq('status', 'active').order('created_at');
+    var r = await sb.from('listings').select('id,title,industry,state,price_label,summary,url,contact_email,photo_url,teaser_url').eq('broker_id', b.id).eq('status', 'active').order('created_at');
     var ls = r.data || []; if (!ls.length) return;
     var first = b.name.split(' ')[0];
     el.innerHTML = '<details class="section" style="border:1px solid var(--line2);border-radius:14px;background:var(--card);padding:0 20px">'
       + '<summary style="cursor:pointer;padding:16px 0;font-weight:700;color:var(--ink);display:flex;justify-content:space-between;align-items:center"><span>Businesses ' + esc(first) + ' is currently representing <span class="chip">' + ls.length + '</span></span><span class="hint">Posted by the broker</span></summary>'
       + '<div class="rlist" style="padding-bottom:16px">' + ls.map(function (l) {
-        return '<div class="rrow" style="align-items:flex-start"><div style="flex:1;min-width:0"><div class="nm">' + esc(l.title) + '</div><div class="mt">' + esc([l.industry, l.state, l.price_label].filter(Boolean).join(' \u00b7 ')) + '</div>' + (l.summary ? '<div class="mt" style="margin-top:4px;color:var(--ink2)">' + esc(l.summary) + '</div>' : '') + '</div>'
-          + '<div style="display:flex;gap:6px;flex-shrink:0">' + (l.url ? '<a class="btn line sm" target="_blank" rel="noopener nofollow" href="' + esc(l.url) + '">Details</a>' : '') + '<button class="btn navy sm" onclick="TBI.inquire(\'' + l.id + '\',\'' + esc(l.title).replace(/'/g, '&#39;') + '\')">Inquire</button></div></div>';
+        return '<div class="rrow" style="align-items:flex-start">' + (l.photo_url ? '<img src="' + esc(l.photo_url) + '" alt="" loading="lazy" style="width:72px;height:72px;border-radius:8px;object-fit:cover;border:1px solid var(--line2);flex:none">' : '') + '<div style="flex:1;min-width:0"><div class="nm">' + esc(l.title) + '</div><div class="mt">' + esc([l.industry, l.state, l.price_label].filter(Boolean).join(' \u00b7 ')) + '</div>' + (l.summary ? '<div class="mt" style="margin-top:4px;color:var(--ink2)">' + esc(l.summary) + '</div>' : '') + '</div>'
+          + '<div style="display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap">' + (l.teaser_url ? '<a class="btn line sm" target="_blank" rel="noopener" href="' + esc(l.teaser_url) + '">Teaser PDF</a>' : '') + (l.url ? '<a class="btn line sm" target="_blank" rel="noopener nofollow" href="' + esc(l.url) + '">Details</a>' : '') + '<button class="btn navy sm" onclick="TBI.inquire(\'' + l.id + '\',\'' + esc(l.title).replace(/'/g, '&#39;') + '\')">Inquire</button></div></div>';
       }).join('') + '</div><p class="hint" style="padding-bottom:14px">Listings are posted by the broker and don\u2019t affect their rating. Your inquiry goes to the broker only.</p></details>';
   };
   T.inquire = function (lid, title) {
