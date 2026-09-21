@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>My List &amp; Account | The Broker Index</title>
+<meta name="description" content="Your ranked list of business brokers, your public reviewer profile, and a private tracker of your broker conversations and deal funnel.">
+<meta name="robots" content="noindex,follow">
+<link rel="canonical" href="https://ratemybusinessbroker.com/account.html">
+<link rel="icon" href="/favicon.ico" sizes="48x48"><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,650&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/_shared.css">
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-KTQ1BWRBJC"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-KTQ1BWRBJC');</script>
+</head>
+<body data-nav="account">
+<div id="site-header"></div>
+<main class="wrap app" id="main" style="padding-top:28px"><div class="skel"></div></main>
+<div id="site-footer"></div>
+<div id="modals"></div><div class="toast" id="toast"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="/_shell.js"></script>
+<script src="/_app.js"></script>
+<script>
+const $ = TBI.$, esc = TBI.esc;
+let P = null, own = false, list = [], inter = [], notes = [];
+const KINDS = { contacted:'Contacted a broker', replied:'Broker replied', cim:'Received a CIM', loi:'Submitted an LOI', closed:'Closed a deal', passed:'Passed on a deal' };
+
+function bname(id){ const b = TBI.brokers.find(x=>x.id===id); return b ? b : { name:'(removed broker)', firm:'', slug:'' }; }
+
+/* ---------- profile card ---------- */
+function profileCard(){
+  const labels = (P.labels||[]).map(l=>`<span class="chip">${esc(l)}</span>`).join('');
+  const myRevs = TBI.reviews.filter(r=>r.author_id===P.id);
+  return `<div class="panel">
+    <div style="display:flex;gap:14px;align-items:center">
+      <div class="avatar ph" style="width:64px;height:64px;background:var(--navy);color:#f2ede2;font-size:24px">${TBI.initials(P.username||'M')}</div>
+      <div style="min-width:0"><h2 style="font-size:22px">${esc(P.username||'Member')}${P.tier==='verified'?' <span class="vbadge">Verified</span>':''}</h2>
+      <p class="sub">${esc(P.headline||'')}${P.location?' · '+esc(P.location):''}</p></div></div>
+    ${labels?`<div class="bmeta" style="margin-top:12px">${labels}</div>`:''}
+    ${P.bio?`<p style="margin-top:12px;font-size:14.5px;line-height:1.55;color:var(--ink2)">${esc(P.bio)}</p>`:(own?'<p class="hint" style="margin-top:12px">Add a line about who you are and what you’re looking for — brokers and other members see it.</p>':'')}
+    <div class="cols3" style="margin-top:16px;padding-top:14px;border-top:1px solid var(--line2)">
+      <div><b class="serif" style="font-size:24px">${P.acquisitions||0}</b><div class="hint">Acquisitions</div></div>
+      <div><b class="serif" style="font-size:24px">${myRevs.length}</b><div class="hint">Reviews written</div></div>
+      <div><b class="serif" style="font-size:20px">${esc(P.target_size||'—')}</b><div class="hint">Target size</div></div>
+    </div>
+    <div style="margin-top:16px"><div class="hint" style="font-weight:700;letter-spacing:.6px;text-transform:uppercase;margin-bottom:8px">Earned</div>${TBI.renderShields(P.id)}</div>
+    ${own?`<div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn line sm" onclick="editProfile()">Edit profile</button><button class="btn line sm" onclick="TBI.signOut()">Sign out</button>${P.is_admin?'<a class="btn navy sm" href="/admin.html">Admin</a>':''}</div>`:''}
+  </div>`;
+}
+
+/* ---------- My List (ranked) ---------- */
+function listPanel(){
+  const rows = list.map((x,i)=>{ const b=bname(x.broker_id), sc=TBI.shown(TBI.scores[x.broker_id]); return `<div class="rrow">
+    ${own?`<div class="ctl"><button aria-label="Move up" onclick="move(${i},-1)">▲</button><button aria-label="Move down" onclick="move(${i},1)">▼</button></div>`:''}
+    <span class="rk">${i+1}</span>
+    <div style="flex:1;min-width:0"><a class="nm" href="/broker-${esc(b.slug)}.html">${esc(b.name)}</a><div class="mt">${esc(b.firm)}${x.note&&!own?' · '+esc(x.note):''}</div>${own?`<input class="note" maxlength="120" placeholder="Why this rank? (private note)" value="${esc(x.note||'')}" onchange="saveNote('${x.broker_id}',this.value)">`:''}</div>
+    <div class="sc">${sc?`<b>${TBI.fmt(sc.score)}</b><span>${sc.count} reviews</span>`:'<span>no score yet</span>'}</div>
+    ${own?`<button class="x" title="Remove" onclick="TBI.toggleList('${x.broker_id}').then(()=>{list=TBI.myList;paint()})">✕</button>`:''}
+  </div>`; }).join('');
+  return `<div class="panel"><div class="sechead"><div><h2>${own?'My List':esc(P.username)+'’s list'}</h2><p class="sub">${own?'Ranked in your order. Use the arrows to reorder; notes are private to you.':'Ranked by '+esc(P.username)+'.'}</p></div>
+    ${own?`<div class="seg"><button class="${P.list_public?'on':''}" onclick="setPublic(true)">Public</button><button class="${!P.list_public?'on':''}" onclick="setPublic(false)">Private</button></div>`:''}</div>
+    ${rows?`<div class="rlist">${rows}</div>`:`<p class="hint">${own?'Nothing saved yet. Tap ★ on any broker to add them here.':'No public list.'}</p>`}
+    ${own?'<div style="margin-top:14px"><a class="btn line sm" href="/">Browse brokers</a></div>':''}
+  </div>`;
+}
+async function move(i,d){ const j=i+d; if(j<0||j>=list.length) return; [list[i],list[j]]=[list[j],list[i]]; TBI.myList=list; await TBI.saveListOrder(); paint(); }
+async function saveNote(bid, v){ await TBI.sb.from('watchlists').update({note:v.slice(0,120)}).eq('user_id',TBI.user.id).eq('broker_id',bid); const x=list.find(y=>y.broker_id===bid); if(x) x.note=v; TBI.toast('Note saved'); }
+async function setPublic(v){ await TBI.sb.from('profiles').update({list_public:v}).eq('id',TBI.user.id); P.list_public=v; TBI.toast(v?'Your list is public':'Your list is private'); paint(); }
+
+/* ---------- dashboard (own page only) ---------- */
+function dashPanel(){
+  const now=Date.now(), y1=now-365*864e5, y2=now-730*864e5;
+  const cur = inter.filter(x=>new Date(x.happened_at)>y1), prev = inter.filter(x=>{const t=new Date(x.happened_at);return t<=y1&&t>y2;});
+  const n = (xs,k)=>xs.filter(x=>x.kind===k).length;
+  const uniq = xs=>new Set(xs.filter(x=>x.kind==='contacted').map(x=>x.broker_id)).size;
+  const delta = (a,b,unit)=>{ const d=a-b; return `<small class="${d>0?'up':d<0?'down':''}">${d>0?'+':''}${d}${unit||''} vs prior year</small>`; };
+  // responsiveness: for each broker, first 'contacted' → first 'replied'
+  const byB = {}; inter.forEach(x=>{ if(!x.broker_id) return; (byB[x.broker_id]=byB[x.broker_id]||[]).push(x); });
+  const resp = Object.keys(byB).map(id=>{ const xs=byB[id].sort((a,b)=>new Date(a.happened_at)-new Date(b.happened_at)); const c=xs.find(x=>x.kind==='contacted'), r=xs.find(x=>x.kind==='replied'&&(!c||new Date(x.happened_at)>=new Date(c.happened_at))); return { id, days: c&&r ? Math.round((new Date(r.happened_at)-new Date(c.happened_at))/864e5) : null, contacted:!!c }; }).filter(x=>x.contacted);
+  const replied = resp.filter(x=>x.days!=null), avg = replied.length ? (replied.reduce((a,x)=>a+x.days,0)/replied.length).toFixed(1) : null;
+  const active = new Set(inter.filter(x=>['cim','loi'].includes(x.kind)).map(x=>x.broker_id)).size - new Set(inter.filter(x=>['closed','passed'].includes(x.kind)).map(x=>x.broker_id)).size;
+  const funnel = [['Brokers contacted',uniq(cur)],['Replies',n(cur,'replied')],['CIMs received',n(cur,'cim')],['LOIs submitted',n(cur,'loi')],['Closed',n(cur,'closed')]];
+  const max = Math.max(1,...funnel.map(f=>f[1]));
+  return `<div class="panel"><div class="sechead"><div><h2>Your deal activity</h2><p class="sub">Private to you. Log each step as it happens; the numbers build over time.</p></div><button class="btn line sm" onclick="logForm()">＋ Log an interaction</button></div>
+    ${inter.length?`<div class="kpis">
+      <div class="kpi"><span>Brokers contacted</span><b>${uniq(cur)}</b>${delta(uniq(cur),uniq(prev))}</div>
+      <div class="kpi"><span>Active conversations</span><b>${Math.max(0,active)}</b><small>${n(inter,'loi')} LOI${n(inter,'loi')===1?'':'s'} all time</small></div>
+      <div class="kpi"><span>Avg. broker reply time</span><b>${avg!=null?avg+' d':'—'}</b><small>${replied.length} of ${resp.length} replied</small></div>
+      <div class="kpi"><span>Deals closed</span><b>${n(cur,'closed')}</b>${delta(n(cur,'closed'),n(prev,'closed'))}</div>
+    </div>
+    <div class="cols2" style="margin-top:16px">
+      <div><h3 style="font-size:15px;font-family:Inter;margin-bottom:8px">Your funnel, last 12 months</h3><div class="funnel">${funnel.map(f=>`<div class="fr"><span>${f[0]}</span><span class="bar"><i style="width:${f[1]/max*100}%"></i></span><b>${f[1]}</b></div>`).join('')}</div></div>
+      <div><h3 style="font-size:15px;font-family:Inter;margin-bottom:8px">Broker responsiveness to you</h3>${resp.length?resp.sort((a,b)=>(a.days==null)-(b.days==null)||a.days-b.days).slice(0,6).map(x=>{const b=bname(x.id);return `<div style="display:flex;justify-content:space-between;font-size:13px;padding:6px 0;border-bottom:1px solid var(--line2)"><span><b>${esc(b.name)}</b> <span class="hint">${esc(b.firm)}</span></span><b>${x.days!=null?x.days+' d':'no reply'}</b></div>`;}).join(''):'<p class="hint">Log a "contacted" and a "replied" for a broker to see reply times.</p>'}</div>
+    </div>
+    <details style="margin-top:14px"><summary class="hint" style="cursor:pointer">All logged interactions (${inter.length})</summary>${inter.slice().sort((a,b)=>new Date(b.happened_at)-new Date(a.happened_at)).map(x=>`<div style="display:flex;gap:10px;font-size:13px;padding:6px 0;border-bottom:1px solid var(--line2)"><span style="color:var(--mut);width:90px">${x.happened_at}</span><span style="flex:1"><b>${KINDS[x.kind]}</b> · ${esc(bname(x.broker_id).name)}${x.note?' — '+esc(x.note):''}</span><button class="lnk" style="color:var(--red)" onclick="delInter('${x.id}')">delete</button></div>`).join('')}</details>`
+    : `<p class="hint">Nothing logged yet. Start with the brokers you’ve contacted — reply times, CIMs, LOIs and closes build into a picture of your process over time.</p>`}
+  </div>`;
+}
+function logForm(){
+  TBI.modal(`<div class="mhead"><h3>Log an interaction</h3><button class="x" onclick="TBI.closeModal()">✕</button></div><div class="mbody">
+    <label class="fl" for="li-kind" style="margin-top:0">What happened</label><select class="fi" id="li-kind">${Object.entries(KINDS).map(([k,v])=>`<option value="${k}">${v}</option>`).join('')}</select>
+    <label class="fl" for="li-b">Broker</label><select class="fi" id="li-b"><option value="">Choose…</option>${[...list.map(x=>x.broker_id), ...inter.map(x=>x.broker_id)].filter((v,i,a)=>v&&a.indexOf(v)===i).map(id=>`<option value="${id}">${esc(bname(id).name)} · ${esc(bname(id).firm)}</option>`).join('')}</select>
+    <div class="hint">Only brokers on your list or already logged appear here — save a broker to My List first to add a new one.</div>
+    <label class="fl" for="li-date">Date</label><input class="fi" id="li-date" type="date" value="${new Date().toISOString().slice(0,10)}">
+    <label class="fl" for="li-note">Note (optional)</label><input class="fi" id="li-note" maxlength="200">
+    <div class="msg" id="li-msg"></div><div style="margin-top:14px"><button class="btn navy wide" onclick="saveInter()">Save</button></div></div>`, true);
+}
+async function saveInter(){ const bid=$('#li-b').value, m=$('#li-msg'); if(!bid){m.className='msg err';m.textContent='Pick a broker.';return;} const r=await TBI.sb.from('interactions').insert({user_id:TBI.user.id,broker_id:bid,kind:$('#li-kind').value,happened_at:$('#li-date').value,note:$('#li-note').value.trim()}).select().single(); if(r.error){m.className='msg err';m.textContent=r.error.message;return;} inter.push(r.data); TBI.closeModal(); paint(); }
+async function delInter(id){ await TBI.sb.from('interactions').delete().eq('id',id); inter=inter.filter(x=>x.id!==id); paint(); }
+
+/* ---------- reviews + notifications ---------- */
+function reviewsPanel(){
+  const rs = TBI.reviews.filter(r=>r.author_id===P.id).concat(own?pendingMine:[]).sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
+  return `<div class="panel"><div class="sechead"><h2>${own?'My reviews':'Reviews'} <span class="chip">${rs.length}</span></h2>${own?'<a class="btn gold sm" href="/write-a-review.html">Write a review</a>':''}</div>
+    ${rs.length?rs.map(r=>{ const b=r.broker_id?bname(r.broker_id):{name:(r._req&&r._req.name)||'Broker pending',slug:''}; return TBI.renderReview(r,{brokerLink:b.slug,brokerName:b.name}); }).join(''):'<p class="hint">No reviews yet.</p>'}</div>`;
+}
+function notifPanel(){
+  if (!notes.length) return '';
+  return `<div class="panel" style="border-color:#efe2bd;background:#fffdf6"><div class="sechead"><h2 style="font-size:18px">Updates</h2><button class="lnk hint" onclick="markRead()">Mark all read</button></div>${notes.map(n=>`<div style="display:flex;gap:10px;font-size:14px;padding:8px 0;border-bottom:1px solid var(--line2)"><span style="width:8px;height:8px;border-radius:50%;background:${n.read?'transparent':'var(--gold2)'};margin-top:7px;flex:none"></span><span style="flex:1">${esc(n.text)} ${n.url?`<a href="${esc(n.url)}">View →</a>`:''}<div class="hint">${TBI.fmtDate(n.created_at)}</div></span></div>`).join('')}</div>`;
+}
+async function markRead(){ await TBI.sb.from('notifications').update({read:true}).eq('user_id',TBI.user.id).eq('read',false); notes.forEach(n=>n.read=true); TBI.unread=0; paint(); }
+
+/* ---------- edit profile ---------- */
+function editProfile(){
+  TBI.modal(`<div class="mhead"><h3>Edit profile</h3><button class="x" onclick="TBI.closeModal()">✕</button></div><div class="mbody">
+    <label class="fl" for="ep-un" style="margin-top:0">Username</label><input class="fi" id="ep-un" maxlength="24" value="${esc(P.username||'')}">
+    <label class="fl" for="ep-h">I am a</label><select class="fi" id="ep-h">${TBI.HEADLINES.map(h=>`<option ${P.headline===h?'selected':''}>${h}</option>`).join('')}</select>
+    <label class="fl">Labels (up to 4)</label><div class="bmeta" id="ep-labels">${TBI.LABELS.map(l=>`<button type="button" class="pill ${(P.labels||[]).includes(l)?'on':''}" data-l="${esc(l)}" onclick="this.classList.toggle('on')">${esc(l)}</button>`).join('')}</div>
+    <label class="fl" for="ep-bio">About you and what you're looking for</label><textarea class="fi" id="ep-bio" maxlength="600" style="min-height:90px">${esc(P.bio||'')}</textarea>
+    <div class="cols3"><div><label class="fl" for="ep-acq">Acquisitions done</label><input class="fi" id="ep-acq" type="number" min="0" max="999" value="${P.acquisitions||0}"></div>
+      <div><label class="fl" for="ep-ts">Target deal size</label><select class="fi" id="ep-ts"><option value="">—</option>${TBI.DEAL_SIZES.map(s=>`<option ${P.target_size===s?'selected':''}>${s}</option>`).join('')}</select></div>
+      <div><label class="fl" for="ep-loc">Location</label><input class="fi" id="ep-loc" maxlength="80" value="${esc(P.location||'')}"></div></div>
+    <label class="fl" for="ep-ind">Industries of interest</label><input class="fi" id="ep-ind" maxlength="200" value="${esc(P.industries||'')}">
+    <div class="msg" id="ep-msg"></div><div style="margin-top:16px"><button class="btn navy wide" onclick="saveProfile()">Save</button></div>
+    ${P.tier!=='verified'?`<p class="hint" style="margin-top:12px">Want the Verified badge? <button class="lnk" style="color:var(--gold)" onclick="requestVerify()">Request verification</button> — an admin confirms a real transaction; verified reviews carry ~2× weight.</p>`:''}
+  </div>`);
+}
+async function saveProfile(){
+  const m=$('#ep-msg'), labels=[...document.querySelectorAll('#ep-labels .on')].map(b=>b.dataset.l).slice(0,4);
+  const row={ username:$('#ep-un').value.trim(), headline:$('#ep-h').value, labels, bio:$('#ep-bio').value.trim(), acquisitions:+$('#ep-acq').value||0, target_size:$('#ep-ts').value, location:$('#ep-loc').value.trim(), industries:$('#ep-ind').value.trim() };
+  if (row.username.length<3){ m.className='msg err'; m.textContent='Username: at least 3 characters.'; return; }
+  const r = await TBI.sb.from('profiles').update(row).eq('id',TBI.user.id);
+  if (r.error){ m.className='msg err'; m.textContent=r.error.code==='23505'?'That username is taken.':r.error.message; return; }
+  Object.assign(P,row); Object.assign(TBI.me,row); try{localStorage.setItem('tbi.profile.v1',JSON.stringify(TBI.me));}catch(e){}
+  TBI.closeModal(); TBI.toast('Profile saved'); paint(); }
+async function requestVerify(){ const note=prompt('Which broker did you transact with, and roughly when? An admin may ask for documentation.'); if(note===null) return; const r=await TBI.sb.from('verification_requests').insert({user_id:TBI.user.id,kind:'reviewer',note:note.slice(0,500)}); TBI.toast(r.error?'Request already on file or failed.':'Verification requested.'); }
+
+/* ---------- paint ---------- */
+let pendingMine = [];
+function paint(){
+  $('#main').innerHTML = `<div class="cols2b">
+    <div>${profileCard()}${own?'<div style="margin-top:16px">'+notifPanel()+'</div>':''}</div>
+    <div>${listPanel()}${own?'<div style="margin-top:16px">'+dashPanel()+'</div>':''}<div style="margin-top:16px">${reviewsPanel()}</div></div></div>`;
+  document.title = (own?'My List & Account':esc(P.username)+' — Reviewer profile') + ' | The Broker Index';
+}
+
+(async()=>{
+  await TBI.ready; await TBI.load();
+  if (TBI.qs('digest')==='off' && TBI.user){ await TBI.sb.from('profiles').update({digest_opt_out:true}).eq('id',TBI.user.id); TBI.toast('Monthly reports switched off.'); }
+  const u = TBI.qs('u');
+  if (u){
+    const r = await TBI.sb.from('profiles').select('*').eq('username',u).maybeSingle();
+    if (!r.data){ $('#main').innerHTML='<div class="empty">No member with that username.</div>'; return; }
+    P = r.data; own = TBI.user && TBI.user.id===P.id;
+  } else {
+    if (!TBI.user){ $('#main').innerHTML=`<div class="panel" style="max-width:520px;margin:30px auto;text-align:center"><h2>Your list, your profile, your deal tracker</h2><p class="sub" style="margin:10px 0 18px">Sign in to keep a ranked list of brokers, publish reviews under your username, and track your conversations privately.</p><button class="btn gold" onclick="TBI.openAuth()">Sign in or create a free account</button></div>`; TBI.onAuth(u=>{ if(u) location.reload(); }); return; }
+    const r = await TBI.sb.from('profiles').select('*').eq('id',TBI.user.id).single(); P = r.data || TBI.me; own = true;
+  }
+  if (own){
+    await TBI.loadMyList(); list = TBI.myList;
+    const [i, n, pr] = await Promise.all([ TBI.sb.from('interactions').select('*').eq('user_id',TBI.user.id), TBI.sb.from('notifications').select('*').eq('user_id',TBI.user.id).order('created_at',{ascending:false}).limit(20), TBI.sb.from('reviews').select('*, listing_requests(name)').eq('author_id',TBI.user.id).eq('status','pending') ]);
+    inter = i.data||[]; notes = n.data||[]; pendingMine = (pr.data||[]).map(x=>({...x, _req:x.listing_requests}));
+  } else {
+    const w = await TBI.sb.from('watchlists').select('broker_id,rank,note').eq('user_id',P.id).order('rank'); list = w.data||[];
+  }
+  paint();
+})();
+</script>
+</body>
+</html>

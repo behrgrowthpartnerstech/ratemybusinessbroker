@@ -3,978 +3,191 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>The Broker Index — M&A Broker Ratings & Reviews</title>
-<meta name="description" content="Independent ratings and reviews of M&A business brokers. Transparency and accountability for buyers and sellers.">
-<link rel="icon" type="image/png" sizes="512x512" href="/favicon.png">
-<link rel="apple-touch-icon" href="/favicon.png">
-<meta property="og:title" content="The Broker Index — M&A Broker Ratings & Reviews">
-<meta property="og:description" content="Independent ratings of M&A business brokers from the buyers and sellers who worked with them. Six parameters. No pay-to-play.">
-<meta property="og:url" content="https://ratemybusinessbroker.com">
-<meta property="og:image" content="https://ratemybusinessbroker.com/favicon.png">
+<title>The Broker Index — Business Broker Reviews &amp; Ratings by Real Buyers and Sellers</title>
+<meta name="description" content="Find and compare M&A business brokers by independent client reviews. See how sellers and buyers rate each broker on six parameters, get matched to the right broker for your sale, and share your own experience. Free, no pay-to-play.">
+<link rel="canonical" href="https://ratemybusinessbroker.com/">
+<link rel="icon" href="/favicon.ico" sizes="48x48">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="The Broker Index">
+<meta property="og:title" content="The Broker Index — Business Broker Reviews &amp; Ratings">
+<meta property="og:description" content="Independent reviews of M&A business brokers from the buyers and sellers who worked with them. Compare brokers, get matched, write a review.">
+<meta property="og:url" content="https://ratemybusinessbroker.com/">
+<meta property="og:image" content="https://ratemybusinessbroker.com/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,650&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/_shared.css">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@graph":[
+ {"@type":"Organization","@id":"https://ratemybusinessbroker.com/#org","name":"The Broker Index","alternateName":"RateMyBusinessBroker","url":"https://ratemybusinessbroker.com/","logo":{"@type":"ImageObject","url":"https://ratemybusinessbroker.com/logo-512.png","width":512,"height":512},"sameAs":[]},
+ {"@type":"WebSite","@id":"https://ratemybusinessbroker.com/#site","url":"https://ratemybusinessbroker.com/","name":"The Broker Index","publisher":{"@id":"https://ratemybusinessbroker.com/#org"},"potentialAction":{"@type":"SearchAction","target":{"@type":"EntryPoint","urlTemplate":"https://ratemybusinessbroker.com/?q={search_term_string}"},"query-input":"required name=search_term_string"}}
+]}
+</script>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-KTQ1BWRBJC"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'G-KTQ1BWRBJC');
-</script>
-<style>
-:root{
-  --ink:#101c2c; --ink2:#3c4a5e; --mut:#71809a; --line:#e3e0d8; --line2:#efece5;
-  --paper:#faf8f4; --card:#ffffff; --gold:#b8860b; --gold2:#dfa920; --navy:#14293f;
-  --green:#1c7c4a; --amber:#9a6b12; --red:#b3352c; --blue:#1d5fa8;
-  --shadow:0 1px 2px rgba(16,28,44,.06),0 8px 24px -12px rgba(16,28,44,.14);
-}
-*{box-sizing:border-box;margin:0}
-html{scroll-behavior:smooth}
-body{font:15px/1.55 Inter,system-ui,sans-serif;color:var(--ink);background:var(--paper)}
-button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}
-input,select,textarea{font:inherit;color:inherit}
-a{color:var(--blue);text-decoration:none}
-img{max-width:100%}
-.wrap{max-width:1060px;margin:0 auto;padding:0 20px}
-.serif{font-family:Fraunces,Georgia,serif}
-
-/* header */
-header{background:var(--navy);color:#f2ede2;position:sticky;top:0;z-index:40;box-shadow:0 2px 10px rgba(0,0,0,.18)}
-.hbar{display:flex;align-items:center;gap:16px;padding:12px 0}
-.brand{display:flex;align-items:center;gap:10px;color:#f2ede2}
-.brand .mark{width:34px;height:34px;border-radius:8px;background:linear-gradient(135deg,#dfa920,#b8860b);display:grid;place-items:center;font-family:Fraunces,serif;font-weight:650;font-size:19px;color:#14293f}
-.brand b{font-family:Fraunces,serif;font-weight:650;font-size:19px;letter-spacing:.2px;white-space:nowrap}
-.hsearch{flex:1;max-width:430px;position:relative}
-.hsearch input{width:100%;padding:9px 12px 9px 36px;border-radius:9px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.1);color:#fff;outline:none}
-.hsearch input::placeholder{color:rgba(255,255,255,.55)}
-.hsearch svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);opacity:.6}
-.hspace{flex:1}
-.hbtn{padding:8px 15px;border-radius:9px;font-weight:600;font-size:14px;white-space:nowrap}
-.hbtn.solid{background:var(--gold2);color:#14293f}
-.hbtn.ghost{border:1px solid rgba(255,255,255,.25)}
-.uchip{display:flex;align-items:center;gap:8px;padding:6px 12px;border-radius:99px;background:rgba(255,255,255,.1);font-size:13.5px;font-weight:600}
-.uchip .dot{width:8px;height:8px;border-radius:50%;background:#63d68f}
-
-/* hero */
-.hero{background:var(--navy);color:#f2ede2;padding:34px 0 30px;border-top:1px solid rgba(255,255,255,.07)}
-.hero h1{font-family:Fraunces,serif;font-weight:650;font-size:clamp(26px,4vw,38px);line-height:1.15;max-width:640px}
-.hero h1 em{font-style:normal;color:var(--gold2)}
-.hero p{margin-top:10px;max-width:560px;color:rgba(242,237,226,.75)}
-.stats{display:flex;gap:28px;margin-top:22px;flex-wrap:wrap}
-.stat b{font-family:Fraunces,serif;font-size:24px;font-weight:650;color:#fff}
-.stat span{display:block;font-size:12.5px;letter-spacing:.4px;text-transform:uppercase;color:rgba(242,237,226,.6)}
-
-/* toolbar */
-.toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:16px 0 6px}
-.toolbar select{max-width:200px;padding:8px 30px 8px 12px;border-radius:9px;border:1px solid var(--line);background:var(--card) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%2371809a' stroke-width='1.6' fill='none'/%3E%3C/svg%3E") no-repeat right 11px center;appearance:none;font-size:13.5px;font-weight:500;color:var(--ink2)}
-.tsearch{position:relative;flex:1 1 220px;min-width:180px;max-width:340px}
-.tsearch svg{position:absolute;left:11px;top:50%;transform:translateY(-50%)}
-.tsearch input{width:100%;padding:8px 12px 8px 33px;border-radius:9px;border:1px solid var(--line);background:var(--card);font-size:13.5px;outline:none;color:var(--ink)}
-.tsearch input:focus{border-color:var(--navy)}
-.tcount{margin-left:auto;font-size:13px;color:var(--mut)}
-.pill{padding:8px 13px;border-radius:9px;border:1px solid var(--line);background:var(--card);font-size:13.5px;font-weight:500;color:var(--ink2)}
-.pill.on{background:var(--navy);border-color:var(--navy);color:#fff}
-
-/* list */
-.list{display:flex;flex-direction:column;gap:10px;padding:10px 0 30px}
-.bcard{display:grid;grid-template-columns:44px 64px 1fr auto;gap:14px;align-items:center;background:var(--card);border:1px solid var(--line2);border-radius:14px;padding:14px 18px 14px 12px;box-shadow:var(--shadow);cursor:pointer;transition:transform .12s ease, box-shadow .12s ease}
-.bcard:hover{transform:translateY(-1px);box-shadow:0 2px 4px rgba(16,28,44,.07),0 14px 30px -12px rgba(16,28,44,.2)}
-.rank{font-family:Fraunces,serif;font-weight:650;font-size:19px;color:var(--mut);text-align:center}
-.rank.top{color:var(--gold)}
-.avatar{width:64px;height:64px;border-radius:12px;object-fit:cover;background:#e8e4da;border:1px solid var(--line2)}
-.avatar.ph{display:grid;place-items:center;font-family:Fraunces,serif;font-weight:650;font-size:22px;color:#9aa5b5}
-.bmain{min-width:0}
-.bname{font-weight:700;font-size:16px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.bfirm{color:var(--ink2);font-size:13.5px;margin-top:1px;display:flex;align-items:center;gap:7px;min-width:0}
-.bfirm img{height:16px;max-width:74px;object-fit:contain}
-.bfirm span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.bmeta{margin-top:6px;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
-.chip{font-size:11.5px;font-weight:600;padding:2.5px 9px;border-radius:99px;background:#f0ede5;color:var(--ink2)}
-.chip.loc{background:#e9eef6;color:var(--blue)}
-.bright{text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:3px}
-.score{display:flex;align-items:baseline;gap:7px}
-.score b{font-family:Fraunces,serif;font-size:22px;font-weight:650}
-.stars{color:var(--gold2);font-size:14px;letter-spacing:1px;white-space:nowrap}
-.stars .off{color:#d9d4c7}
-.conf{font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:99px}
-.conf.est{background:#e2f2e8;color:var(--green)} .conf.early{background:#f6ecd8;color:var(--amber)}
-.conf.prov{background:#eee;color:var(--mut)} .conf.none{background:#f0ede5;color:var(--mut)}
-.rcount{font-size:12px;color:var(--mut)}
-.more{align-self:center;margin:6px 0 24px;padding:10px 26px;border-radius:10px;background:var(--navy);color:#fff;font-weight:600}
-.empty{padding:60px 0;text-align:center;color:var(--mut)}
-.skel{height:92px;border-radius:14px;background:linear-gradient(90deg,#efece5,#f7f4ee,#efece5);background-size:200% 100%;animation:sh 1.2s infinite}
-@keyframes sh{0%{background-position:0 0}100%{background-position:-200% 0}}
-
-/* modal */
-.overlay{position:fixed;inset:0;background:rgba(14,22,34,.55);z-index:60;display:grid;place-items:center;padding:18px;overflow:auto}
-.modal{background:var(--card);border-radius:18px;width:100%;max-width:640px;max-height:92vh;overflow:auto;box-shadow:0 30px 80px -20px rgba(0,0,0,.45)}
-.modal.sm{max-width:430px}
-.mhead{position:sticky;top:0;background:var(--card);display:flex;align-items:center;gap:10px;padding:16px 20px;border-bottom:1px solid var(--line2);z-index:2}
-.mhead h3{font-family:Fraunces,serif;font-weight:650;font-size:19px;flex:1}
-.x{width:32px;height:32px;border-radius:9px;display:grid;place-items:center;color:var(--mut);font-size:17px}
-.x:hover{background:#f0ede5}
-.mbody{padding:20px}
-
-/* profile */
-.phead{display:flex;gap:16px;align-items:flex-start}
-.phead .avatar{width:84px;height:84px}
-.pname{font-family:Fraunces,serif;font-weight:650;font-size:23px;line-height:1.2}
-.pfirm{color:var(--ink2);margin-top:2px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.pfirm img{height:20px;max-width:110px;object-fit:contain}
-.plinks{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
-.plink{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;padding:6px 11px;border-radius:9px;border:1px solid var(--line);color:var(--ink2);background:var(--paper)}
-.plink:hover{border-color:var(--mut)}
-.pscore{margin:18px 0 4px;display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--paper);border:1px solid var(--line2);border-radius:13px}
-.pscore .big{font-family:Fraunces,serif;font-size:38px;font-weight:650;line-height:1}
-.params{margin-top:14px;display:grid;gap:8px}
-.prow{display:grid;grid-template-columns:170px 1fr 34px;align-items:center;gap:10px;font-size:13px}
-.prow .bar{height:7px;border-radius:99px;background:#eee9df;overflow:hidden}
-.prow .bar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--gold),var(--gold2))}
-.prow b{text-align:right;font-size:12.5px}
-.sechead{font-family:Fraunces,serif;font-weight:650;font-size:17px;margin:22px 0 10px;display:flex;align-items:center;gap:10px}
-.sechead .n{font-size:12px;background:#f0ede5;color:var(--ink2);padding:2px 9px;border-radius:99px;font-family:Inter}
-.rev{border:1px solid var(--line2);border-radius:13px;padding:13px 15px;margin-bottom:10px;background:#fffefb}
-.rtop{display:flex;align-items:center;gap:8px;font-size:13px;flex-wrap:wrap}
-.rtop .who{font-weight:700}
-.vbadge{font-size:10.5px;font-weight:700;letter-spacing:.4px;padding:1.5px 7px;border-radius:99px;background:#e2f2e8;color:var(--green);text-transform:uppercase}
-.bverified{display:inline-grid;place-items:center;width:17px;height:17px;border-radius:50%;background:var(--gold2);color:#14293f;font-size:11px;font-weight:800;vertical-align:middle;line-height:1}
-.vpill{display:inline-flex;align-items:center;gap:3px;background:var(--gold2);color:#14293f;font-size:11px;font-weight:800;letter-spacing:.2px;padding:2px 8px 2px 6px;border-radius:99px;vertical-align:middle;white-space:nowrap}
-.rankseg{display:inline-flex;border:1px solid var(--line);border-radius:9px;overflow:hidden;background:#fff}
-.rankseg button{border:0;background:#fff;padding:8px 12px;font:inherit;font-size:13px;font-weight:600;color:var(--ink2);cursor:pointer;border-left:1px solid var(--line)}
-.rankseg button:first-child{border-left:0}
-.rankseg button.on{background:var(--navy);color:#f2ede2}
-.sbcmp{display:block;font-size:11.5px;color:var(--mut);margin-top:4px}
-.sbcmp b{color:var(--ink2);font-weight:700}
-.sbcmp .mut{color:var(--mut)}
-.modetag{font-weight:600;color:var(--gold)}
-.sidetag{font-size:10.5px;font-weight:700;letter-spacing:.3px;padding:1.5px 7px;border-radius:99px;background:#eef1f6;color:var(--ink2);text-transform:uppercase}
-.sidetag.sell{background:#e7f0ff;color:#1d5fa8}
-.sidetag.buy{background:#fef0e6;color:#b5651a}
-.audience{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:8px 0 2px}
-.aud{border:1px solid var(--line2);border-radius:12px;padding:12px 14px;background:var(--card)}
-.aud.empty{opacity:.65}
-.aud .al{font-size:12.5px;font-weight:700;color:var(--ink2)}
-.aud .av{font-family:Fraunces,Georgia,serif;font-size:26px;font-weight:650;color:var(--ink);line-height:1.1;margin-top:4px}
-.aud .an{font-size:11.5px;color:var(--mut);margin-top:2px}
-.bcard.verified{box-shadow:inset 3px 0 0 var(--gold2), 0 1px 2px rgba(16,28,44,.06),0 8px 24px -12px rgba(16,28,44,.14)}
-.vbanner{display:flex;gap:11px;align-items:flex-start;background:#fffaf0;border:1px solid #efe0b6;border-radius:12px;padding:12px 14px;margin:14px 0 2px;font-size:13px;color:var(--ink2);line-height:1.5}
-.vbanner b{color:var(--ink)}
-.vbanner .vchk{flex:none;display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--gold2);color:#14293f;font-weight:800;font-size:13px}
-.wholink{cursor:pointer;text-decoration:underline;text-decoration-color:var(--line)}
-.wholink:hover{color:var(--blue)}
-.repmini{font-size:11px;color:var(--mut);background:var(--paper);border:1px solid var(--line2);border-radius:99px;padding:1px 8px}
-.votes{display:inline-flex;align-items:center;gap:6px}
-.vbtn{border:1px solid var(--line);background:#fff;border-radius:7px;min-width:26px;height:24px;cursor:pointer;color:var(--mut);font-size:11px;line-height:1;padding:0}
-.vbtn:hover{border-color:var(--mut)}
-.vbtn.up.on{background:#e2f2e8;border-color:#bfe3cd;color:var(--green)}
-.vbtn.down.on{background:#fdecea;border-color:#f3c4bf;color:var(--red)}
-.vnet{min-width:22px;text-align:center;font-size:13px;color:var(--mut)}
-.vnet.pos{color:var(--green)}.vnet.neg{color:var(--red)}
-.vlbl{font-size:12px;color:var(--mut);margin-left:2px}
-.badgegrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin:12px 0 4px}
-.badge{border:1px solid var(--line2);border-radius:12px;padding:12px;background:var(--card);opacity:.45;filter:grayscale(1)}
-.badge.earned{opacity:1;filter:none;border-color:#efe2bd;background:#fffdf6}
-.badge .ic{font-size:20px;line-height:1}
-.badge .bl{font-weight:700;font-size:13px;margin-top:5px}
-.badge .bd{font-size:11.5px;color:var(--mut);margin-top:2px;line-height:1.35}
-.repcard{display:flex;gap:16px;align-items:center;background:var(--navy);color:#f2ede2;border-radius:14px;padding:16px 18px;margin:2px 0 6px}
-.repcard .pts{font-family:Fraunces,Georgia,serif;font-size:30px;font-weight:650;color:#dfa920;line-height:1}
-.repcard .tt{font-weight:700}
-.repcard .sub2{font-size:12.5px;color:rgba(242,237,226,.72);margin-top:3px}
-.lbrow{display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid var(--line2);border-radius:11px;margin-top:8px;background:var(--card);cursor:pointer}
-.lbrow:hover{border-color:var(--gold2)}
-.lbrow .rk{font-family:Fraunces,Georgia,serif;font-weight:650;color:var(--mut);width:26px;text-align:center}
-.lbrow .nm2{font-weight:700}
-.lbrow .mt{font-size:12px;color:var(--mut);margin-top:2px}
-.lbrow .pp{margin-left:auto;font-weight:700;color:var(--gold)}
-.rtop time{color:var(--mut);margin-left:auto;font-size:12px}
-.rtxt{margin-top:7px;font-size:14px;color:var(--ink2);white-space:pre-wrap}
-.rctx{margin-top:6px;font-size:12px;color:var(--mut)}
-.ract{margin-top:9px;display:flex;gap:12px;font-size:12.5px}
-.ract button{color:var(--mut);font-weight:600}
-.ract button.on{color:var(--blue)}
-.ract .danger{color:var(--red)}
-.cta{width:100%;padding:12px;border-radius:11px;background:var(--navy);color:#fff;font-weight:600;font-size:15px}
-.cta.gold{background:var(--gold2);color:#14293f}
-.cta[disabled]{opacity:.55;cursor:default}
-.ghostbtn{width:100%;padding:11px;border-radius:11px;border:1px solid var(--line);font-weight:600;color:var(--ink2);background:var(--card)}
-
-/* forms */
-.gbtn{width:100%;display:flex;align-items:center;justify-content:center;gap:10px;padding:11px;border-radius:11px;border:1px solid var(--line);background:#fff;font-weight:600;font-size:14.5px}
-.gbtn:hover{border-color:var(--mut)}
-.ordiv{display:flex;align-items:center;gap:12px;margin:16px 0 2px;color:var(--mut);font-size:12px}
-.ordiv:before,.ordiv:after{content:"";flex:1;height:1px;background:var(--line)}
-label.fl{display:block;font-size:12.5px;font-weight:600;color:var(--ink2);margin:14px 0 5px}
-.fi{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:#fff;outline:none}
-.fi:focus{border-color:var(--navy)}
-textarea.fi{min-height:110px;resize:vertical}
-.hint{font-size:12px;color:var(--mut);margin-top:5px}
-.starrow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid var(--line2)}
-.starrow:last-child{border:0}
-.starrow .lab{font-size:13.5px;font-weight:600}
-.starrow .sub{font-size:11.5px;color:var(--mut);font-weight:400}
-.starpick{display:flex;gap:3px}
-.starpick button{font-size:21px;color:#d9d4c7;line-height:1;padding:1px}
-.starpick button.on{color:var(--gold2)}
-.msg{margin-top:12px;padding:10px 13px;border-radius:10px;font-size:13.5px;display:none}
-.msg.ok{display:block;background:#e2f2e8;color:var(--green)}
-.msg.err{display:block;background:#fbe9e7;color:var(--red)}
-
-/* footer */
-footer{border-top:1px solid var(--line);padding:30px 0 46px;color:var(--mut);font-size:13px}
-footer .frow{display:flex;gap:18px;flex-wrap:wrap;margin-bottom:12px}
-footer button,footer a{color:var(--ink2);font-weight:600;font-size:13px}
-.toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:11px 20px;border-radius:11px;font-size:14px;font-weight:500;z-index:99;box-shadow:0 10px 30px rgba(0,0,0,.3);opacity:0;pointer-events:none;transition:opacity .2s}
-.toast.show{opacity:1}
-.adminbar{background:#fdf6e3;border:1px solid #ecd9a0;color:#7a5d10;border-radius:11px;padding:9px 14px;font-size:13px;margin-top:14px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
-.adminbar b{font-weight:700}
-.watch{font-size:20px;color:#cfc9ba}
-.watch.on{color:var(--gold2)}
-
-@media(max-width:600px){
-  .hbar{flex-wrap:wrap;row-gap:6px;padding:10px 0}
-  .hbtn{padding:7px 10px;font-size:13px}
-  .brand b{font-size:16.5px}
-  .brand .mark{width:29px;height:29px;font-size:16px}
-  .hero{padding:26px 0 24px}
-  .stats{gap:18px}
-  .wrap{padding:0 14px}
-}
-@media(max-width:640px){
-  .bcard{grid-template-columns:30px 52px 1fr;padding:12px}
-  .bright{grid-column:2/4;flex-direction:row;align-items:center;gap:10px;margin-top:2px}
-  .avatar{width:52px;height:52px}
-  .rank{font-size:15px}
-  .hsearch{display:none}
-  .prow{grid-template-columns:120px 1fr 30px}
-}
-</style>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-KTQ1BWRBJC');</script>
 </head>
-<body>
+<body data-nav="home" data-entry="home">
 
-<header>
-  <div class="wrap hbar">
-    <a class="brand" href="#" onclick="resetView();return false">
-      <span class="mark">B</span><b>The Broker Index</b>
-    </a>
-    <div class="hspace"></div>
-    <a class="hbtn ghost" href="/articles.html" style="color:#f2ede2;text-decoration:none">Articles</a>
-    <a class="hbtn ghost" href="/business-valuation-calculator.html" style="color:#f2ede2;text-decoration:none">Valuation</a>
-    <a class="hbtn ghost" href="/about.html" style="color:#f2ede2;text-decoration:none">About</a>
-    <div id="authzone"></div>
-  </div>
-</header>
+<div id="site-header"></div>
 
-<section class="hero">
+<section class="dhero">
   <div class="wrap">
     <h1>Who actually delivers when you sell your business? <em>The reviews are in.</em></h1>
     <p>Independent ratings of M&amp;A business brokers from the buyers and sellers who worked with them. Six parameters. No pay-to-play.</p>
-    <div class="stats">
-      <div class="stat"><b id="stat-brokers">–</b><span>Brokers listed</span></div>
-      <div class="stat"><b id="stat-reviews">–</b><span>Reviews</span></div>
-      <div class="stat"><b id="stat-states">–</b><span>States covered</span></div>
+    <div class="actions">
+      <a class="btn gold" href="/write-a-review.html">Write a review</a>
+      <a class="btn linelt" href="/find-my-perfect-broker.html">Find my perfect broker</a>
+    </div>
+    <div class="stats" id="stats" data-nosnippet>
+      <div class="stat"><b id="stat-brokers">–</b><span>Brokers</span></div>
+      <div class="stat" id="stat-buyers-wrap" hidden><b id="stat-buyers">–</b><span>Registered buyers</span></div>
+      <div class="stat" id="stat-reviews-wrap" hidden><b id="stat-reviews">–</b><span>Reviews</span></div>
     </div>
   </div>
 </section>
 
-<main class="wrap">
-  <div id="adminbar"></div>
+<main class="wrap app">
   <div class="toolbar">
     <div class="tsearch">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#71809a" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
-      <input id="q2" placeholder="Search brokers, firms, cities…" oninput="S.q=this.value;S.page=1;render()">
+      <input id="q2" placeholder="Search brokers, firms, cities…" aria-label="Search brokers" oninput="S.q=this.value;S.page=1;render()">
     </div>
-    <select id="f-state" onchange="S.state=this.value;S.page=1;render()"><option value="">All states</option></select>
-    <select id="f-spec" onchange="S.spec=this.value;S.page=1;render()"><option value="">All specialties</option></select>
-    <select id="f-sort" onchange="S.sort=this.value;S.page=1;render()">
+    <select id="f-state" aria-label="State" onchange="S.state=this.value;S.page=1;render()"><option value="">All states</option></select>
+    <select id="f-spec" aria-label="Specialty" onchange="S.spec=this.value;S.page=1;render()"><option value="">All specialties</option></select>
+    <select id="f-sort" aria-label="Sort" onchange="S.sort=this.value;S.page=1;render()">
       <option value="top">Top rated</option>
       <option value="reviews">Most reviewed</option>
       <option value="name">Name A–Z</option>
     </select>
-    <span class="rankseg" title="Rank brokers by what sellers said, what buyers said, or everyone">
-      <button data-m="overall" class="on" onclick="setRankMode('overall',this)">Overall</button>
-      <button data-m="seller" onclick="setRankMode('seller',this)">Sellers</button>
-      <button data-m="buyer" onclick="setRankMode('buyer',this)">Buyers</button>
-    </span>
-    <button class="pill" id="f-verified" onclick="toggleVerifiedFilter()">✓ Verified</button>
-    <button class="pill" id="f-watch" onclick="toggleWatchFilter()">★ My list</button>
+    <button class="pill" id="f-verified" onclick="S.verifiedOnly=!S.verifiedOnly;S.page=1;render()">✓ Verified profiles</button>
     <span class="tcount" id="tcount"></span>
   </div>
+
+  <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;padding:6px 0 4px">
+    <div>
+      <h2>Top-rated brokers</h2>
+      <p class="sub">Scores out of 10, from client reviews. A broker needs <span id="minnote">3</span> reviews before a score is shown.</p>
+    </div>
+    <div>
+      <div class="seg" role="tablist" aria-label="Whose reviews">
+        <button role="tab" data-m="overall" class="on" onclick="setMode('overall')">Everyone</button>
+        <button role="tab" data-m="seller" onclick="setMode('seller')">Rated by sellers</button>
+        <button role="tab" data-m="buyer" onclick="setMode('buyer')">Rated by buyers</button>
+      </div>
+      <div class="seghelp" id="seghelp">Ranking uses reviews from everyone who worked with each broker.</div>
+    </div>
+  </div>
+
   <div class="list" id="list"><div class="skel"></div><div class="skel"></div><div class="skel"></div><div class="skel"></div></div>
+  <div id="gate"></div>
 </main>
 
-<footer>
-  <div class="wrap">
-    <div class="frow">
-      <a href="/about.html">About</a>
-      <a href="/methodology.html">Methodology</a>
-      <a href="/articles.html">Articles</a>
-      <a href="/business-valuation-calculator.html">Valuation calculator</a>
-      <a href="/business-brokers-by-state.html">Brokers by state</a>
-      <button onclick="openLeaderboard()">🏆 Top reviewers</button>
-      <button onclick="openRequest()">Request a broker listing</button>
-      <button onclick="openAuth()" id="f-signin">Sign in</button>
-    </div>
-    <p>The Broker Index publishes member-submitted reviews to promote transparency in the business brokerage industry. Ratings reflect the opinions of individual reviewers, not the site. Brokers may contact us to respond to reviews or claim their listing.</p>
-  </div>
-</footer>
-
+<div id="site-footer"></div>
 <div id="modals"></div>
 <div class="toast" id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="/_shell.js"></script>
+<script src="/_app.js"></script>
 <script>
-/* ================= The Broker Index — app ================= */
-const SUPA_URL = 'https://qnxmvzrotgnsgyafewbo.supabase.co';
-const SUPA_KEY = 'sb_publishable_jx_rlrzcPGOWtuimIAw2eA_l46TedX8';
-const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
-
-const PARAMS = [
-  ['professionalism','Professionalism','Responsive, prepared, respectful'],
-  ['transparency','Transparency','Honest about fees, value & buyers'],
-  ['consistency','Consistency','Same story & effort start to finish'],
-  ['collaboration','Collaboration','Worked with you, not around you'],
-  ['command','Command of the Deal','Controlled process & negotiations'],
-  ['documentation','Quality of Documentation','CIMs, financials, paperwork'],
-];
+/* ---------------- homepage ---------------- */
 const PAGE = 40;
+const S = { q:'', state:'', spec:'', sort:'top', page:1, verifiedOnly:false, mode:'overall' };
+const HELP = { overall:'Ranking uses reviews from everyone who worked with each broker.', seller:'Ranking uses only reviews from sellers who hired the broker.', buyer:'Ranking uses only reviews from buyers who bought, or tried to buy, through the broker.' };
+let gated = false;
 
-let brokers = [], reviewsAll = [], profilesById = {}, scores = {}, votesByReview = {}, myVote = new Map(), watch = new Set();
-let user = null, myProfile = null;
-const S = { q:'', state:'', spec:'', sort:'top', page:1, watchOnly:false, verifiedOnly:false, rankMode:'overall' };
-
-const $ = s => document.querySelector(s);
-const esc = s => String(s??'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const toast = m => { const t=$('#toast'); t.textContent=m; t.classList.add('show'); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('show'),3200); };
-const specsOf = b => (b.specialty||'').split('|').map(x=>x.trim()).filter(x=>x && x.length<=30);
-const initials = n => n.split(/\s+/).slice(0,2).map(w=>w[0]||'').join('').toUpperCase();
-const starStr = v => { let s=''; for(let i=1;i<=5;i++) s += i<=Math.round(v)?'★':'<span class="off">★</span>'; return s; };
-
-/* ---------- load ---------- */
-async function loadAll(){
-  const [b, r, p, v] = await Promise.all([
-    sb.from('brokers').select('*').limit(2000),
-    sb.from('reviews').select('*').eq('status','published').limit(5000),
-    sb.from('profiles').select('id,username,tier').limit(5000),
-    sb.from('review_votes').select('review_id,voter_id,value').limit(50000),
-  ]);
-  if (b.error) { $('#list').innerHTML = '<div class="empty">Could not reach the database. Please refresh in a moment.</div>'; return; }
-  brokers = b.data||[]; reviewsAll = r.data||[];
-  profilesById = Object.fromEntries((p.data||[]).map(x=>[x.id,x]));
-  votesByReview = {}; myVote = new Map();
-  for (const x of (v.data||[])) {
-    const val = x.value==null ? 1 : x.value;
-    votesByReview[x.review_id] = (votesByReview[x.review_id]||0)+val;
-    if (user && x.voter_id===user.id) myVote.set(x.review_id, val);
-  }
-  computeScores(); buildFilters();
-  const qsState = new URLSearchParams(location.search).get('state');
-  if (qsState && brokers.some(b=>b.state===qsState.toUpperCase())) { S.state = qsState.toUpperCase(); $('#f-state').value = S.state; }
-  $('#stat-brokers').textContent = brokers.length.toLocaleString();
-  $('#stat-reviews').textContent = reviewsAll.length.toLocaleString();
-  $('#stat-states').textContent = new Set(brokers.map(x=>x.state).filter(s=>s&&s!=='—')).size;
-  render();
-}
-
-function shrink(list, prior, M){
-  if (!list.length) return null;
-  const W = list.reduce((a,x)=>a+x.w,0);
-  const raw = list.reduce((a,x)=>a+x.overall*x.w,0)/W;
-  return { score:(W*raw+M*prior)/(W+M), W, count:list.length,
-    conf: W<1.2?'Provisional':W<3?'Early':'Established' };
-}
-function computeScores(){
-  const now = Date.now(), by = {};
-  for (const r of reviewsAll){
-    const vals = Object.values(r.ratings||{}).map(Number).filter(v=>v>=1&&v<=5);
-    if (!vals.length) continue;
-    const overall = vals.reduce((a,b)=>a+b,0)/vals.length;
-    const tier = profilesById[r.author_id]?.tier==='verified' ? 1.0 : 0.55;
-    const months = Math.max(0,(now - new Date(r.created_at).getTime())/(30.44*864e5));
-    const w = tier * Math.pow(.5, months/18);
-    const side = ['buyer','seller','both'].includes(r.side) ? r.side : '';
-    (by[r.broker_id] ||= []).push({overall,w,side});
-  }
-  let sw=0, sww=0;
-  for (const l of Object.values(by)) for (const x of l){ sw+=x.overall*x.w; sww+=x.w; }
-  const prior = sww ? sw/sww : 4.0, M = 2.5;
-  scores = {};
-  for (const [bid,l] of Object.entries(by)){
-    const o = shrink(l, prior, M);
-    o.seller = shrink(l.filter(x=>x.side==='seller'||x.side==='both'), prior, M);
-    o.buyer  = shrink(l.filter(x=>x.side==='buyer'||x.side==='both'), prior, M);
-    scores[bid] = o;
-  }
-}
-// score object for the active ranking lens (overall | seller | buyer)
-function modeScore(id){ const s=scores[id]; if(!s) return null; return S.rankMode==='overall'? s : s[S.rankMode]; }
+function setMode(m){ S.mode=m; S.page=1; document.querySelectorAll('.seg button').forEach(b=>b.classList.toggle('on',b.dataset.m===m)); document.getElementById('seghelp').textContent=HELP[m]; render(); }
 
 function buildFilters(){
-  const states = [...new Set(brokers.map(b=>b.state).filter(s=>s&&s!=='—'))].sort();
+  const $ = TBI.$;
+  const states = [...new Set(TBI.brokers.map(b=>b.state).filter(s=>s&&s!=='—'))].sort();
   $('#f-state').innerHTML = '<option value="">All states</option>' + states.map(s=>`<option>${s}</option>`).join('');
-  const specs = [...new Set(brokers.flatMap(specsOf).filter(x=>x!=='general SMB'))].sort();
-  $('#f-spec').innerHTML = '<option value="">All specialties</option><option value="general SMB">General SMB</option>' + specs.map(s=>`<option>${esc(s)}</option>`).join('');
+  const specs = [...new Set(TBI.brokers.flatMap(TBI.specsOf).filter(x=>x!=='general SMB'))].sort();
+  $('#f-spec').innerHTML = '<option value="">All specialties</option><option value="general SMB">General SMB</option>' + specs.map(s=>`<option>${TBI.esc(s)}</option>`).join('');
+  const st = TBI.qs('state'); if (st && states.includes(st.toUpperCase())) { S.state = st.toUpperCase(); $('#f-state').value = S.state; }
+  const q = TBI.qs('q'); if (q) { S.q = q; }
 }
 
-/* ---------- list ---------- */
 function filtered(){
   const q = S.q.trim().toLowerCase();
-  let list = brokers.filter(b =>
+  const list = TBI.brokers.filter(b =>
     (!S.state || b.state===S.state) &&
     (!S.spec || (b.specialty||'').toLowerCase().includes(S.spec.toLowerCase())) &&
-    (!S.watchOnly || watch.has(b.id)) &&
     (!S.verifiedOnly || b.claimed_by) &&
     (!q || (b.name+' '+b.firm+' '+b.city+' '+b.state).toLowerCase().includes(q)));
-  const sc = id => modeScore(id);
+  const sc = id => TBI.modeScore(id, S.mode);
   list.sort((a,b)=>{
     if (a.rank_pin||b.rank_pin) return (a.rank_pin||1e9)-(b.rank_pin||1e9);
     if (S.sort==='name') return a.name.localeCompare(b.name);
     const A=sc(a.id), B=sc(b.id);
-    if (S.sort==='reviews') return (B?.count||0)-(A?.count||0) || a.name.localeCompare(b.name);
+    if (S.sort==='reviews') return ((TBI.scores[b.id]||{}).count||0)-((TBI.scores[a.id]||{}).count||0) || a.name.localeCompare(b.name);
     if (!!A !== !!B) return A?-1:1;
-    if (A&&B) return B.score-A.score || B.W-A.W || B.count-A.count || a.name.localeCompare(b.name);
-    return a.name.localeCompare(b.name);
+    if (A&&B) return B.score-A.score || B.W-A.W || a.name.localeCompare(b.name);
+    return ((TBI.scores[b.id]||{}).count||0)-((TBI.scores[a.id]||{}).count||0) || a.name.localeCompare(b.name);
   });
   return list;
 }
 
+function card(b, i){
+  const esc = TBI.esc, full = TBI.scores[b.id], sc = TBI.modeScore(b.id, S.mode);
+  const s = TBI.shownSide(full,'seller'), u = TBI.shownSide(full,'buyer');
+  const specs = TBI.specsOf(b).slice(0,3);
+  const right = sc
+    ? `<div class="score"><b>${TBI.fmt(sc.score)}</b><i>/10</i></div>
+       <span class="conf ${TBI.confClass(sc.conf)}">${sc.conf}${S.mode!=='overall'?' · '+S.mode+'s':''}</span>
+       <span class="rcount">${sc.count} review${sc.count===1?'':'s'}</span>
+       ${(s||u)?`<div class="sidebars">
+         <div class="sb"><span>Sellers</span><span class="bar"><i style="width:${s?s.score*10:0}%"></i></span><b>${s?TBI.fmt(s.score):'—'}</b></div>
+         <div class="sb buy"><span>Buyers</span><span class="bar"><i style="width:${u?u.score*10:0}%"></i></span><b>${u?TBI.fmt(u.score):'—'}</b></div></div>`:''}`
+    : `<span class="conf none">${full?full.count+' review'+(full.count===1?'':'s')+' · score at '+TBI.MIN.score:'No reviews yet'}</span><span class="rcount">${full?'Add yours':'Be the first'}</span>`;
+  return `<a class="bcard ${b.claimed_by?'verified':''}" href="/broker-${esc(b.slug)}.html">
+    <div class="rank ${i<3&&S.sort==='top'&&sc?'top':''}">${sc?i+1:'·'}</div>
+    ${b.photo?`<img class="avatar" src="${esc(b.photo)}" alt="" loading="lazy" onerror="this.outerHTML='<div class=&quot;avatar ph&quot;>${TBI.initials(b.name)}</div>'">`:`<div class="avatar ph">${TBI.initials(b.name)}</div>`}
+    <div class="bmain">
+      <div class="bname">${esc(b.name)}${b.claimed_by?' <span class="vpill" title="This broker has claimed and verified their profile">✓ Verified</span>':''}
+        <button class="watch ${TBI.inList(b.id)?'on':''}" title="Save to My List" aria-label="Save to My List" onclick="event.preventDefault();event.stopPropagation();TBI.toggleList('${b.id}').then(ok=>ok&&render())">★</button></div>
+      <div class="bfirm">${b.logo?`<img src="${esc(b.logo)}" alt="" loading="lazy" onerror="this.remove()">`:''}<span>${esc(b.firm)}</span></div>
+      <div class="bmeta"><span class="chip loc">${esc(b.city!=='—'?b.city+', ':'')}${esc(b.state!=='—'?b.state:'')}</span>${specs.map(s=>`<span class="chip">${esc(s)}</span>`).join('')}</div>
+    </div>
+    <div class="bright">${right}</div>
+  </a>`;
+}
+
 function render(){
-  const list = filtered();
+  const $ = TBI.$, list = filtered();
   $('#q2').value = S.q;
   $('#tcount').textContent = `${list.length} broker${list.length===1?'':'s'}`;
-  $('#f-watch').className = 'pill' + (S.watchOnly?' on':'');
   $('#f-verified').className = 'pill' + (S.verifiedOnly?' on':'');
   const slice = list.slice(0, S.page*PAGE);
-  if (!list.length){ $('#list').innerHTML = '<div class="empty">No brokers match. Try clearing filters.</div>'; return; }
-  $('#list').innerHTML = slice.map((b,i)=>{
-    const full = scores[b.id];
-    const sc = modeScore(b.id);
-    const conf = sc ? (sc.conf==='Established'?'est':sc.conf==='Early'?'early':'prov') : 'none';
-    const specs = specsOf(b).slice(0,3);
-    const modeLbl = S.rankMode==='seller'?' <span class="modetag">from sellers</span>':S.rankMode==='buyer'?' <span class="modetag">from buyers</span>':'';
-    const cmp = full && (full.seller||full.buyer) ? `<span class="sbcmp">${full.seller?`<b>S</b> ${full.seller.score.toFixed(1)}`:'<span class="mut">S —</span>'} · ${full.buyer?`<b>B</b> ${full.buyer.score.toFixed(1)}`:'<span class="mut">B —</span>'}</span>` : '';
-    return `<article class="bcard ${b.claimed_by?'verified':''}" onclick="openBroker('${b.id}')">
-      <div class="rank ${i<3&&S.sort==='top'&&sc?'top':''}">${sc?i+1:'·'}</div>
-      ${b.photo?`<img class="avatar" src="${esc(b.photo)}" alt="" loading="lazy" onerror="this.outerHTML='<div class=\\'avatar ph\\'>${initials(b.name)}</div>'">`:`<div class="avatar ph">${initials(b.name)}</div>`}
-      <div class="bmain">
-        <div class="bname">${esc(b.name)}${b.claimed_by?' <span class="vpill" title="This broker has claimed and verified their profile">✓ Verified</span>':''} ${user&&`<button class="watch ${watch.has(b.id)?'on':''}" onclick="event.stopPropagation();toggleWatch('${b.id}')" title="Save to my list">★</button>`||''}</div>
-        <div class="bfirm">${b.logo?`<img src="${esc(b.logo)}" alt="" loading="lazy" onerror="this.remove()">`:''}<span>${esc(b.firm)}</span></div>
-        <div class="bmeta">
-          <span class="chip loc">${esc(b.city!=='—'?b.city+', ':'')}${esc(b.state!=='—'?b.state:'')}</span>
-          ${specs.map(s=>`<span class="chip">${esc(s)}</span>`).join('')}
-        </div>
-      </div>
-      <div class="bright">
-        ${sc?`<div class="score"><b>${sc.score.toFixed(1)}</b><span class="stars">${starStr(sc.score)}</span></div>
-             <span class="conf ${conf}">${sc.conf}${modeLbl}</span>
-             <span class="rcount">${sc.count} review${sc.count===1?'':'s'}</span>
-             ${cmp}`
-           :`<span class="conf none">${S.rankMode==='overall'?'No reviews yet':'No '+S.rankMode+' reviews'}</span><span class="rcount">${S.rankMode==='overall'?'Be the first':(full?'has other reviews':'Be the first')}</span>`}
-      </div>
-    </article>`;
-  }).join('') + (list.length>slice.length?`<button class="more" onclick="S.page++;render()">Show more (${list.length-slice.length} remaining)</button>`:'');
-}
-function resetView(){ Object.assign(S,{q:'',state:'',spec:'',sort:'top',page:1,watchOnly:false,verifiedOnly:false}); $('#f-state').value='';$('#f-spec').value='';$('#f-sort').value='top'; render(); window.scrollTo({top:0}); }
-function toggleWatchFilter(){ if(!user) return openAuth(); S.watchOnly=!S.watchOnly; S.page=1; render(); }
-function toggleVerifiedFilter(){ S.verifiedOnly=!S.verifiedOnly; S.page=1; render(); }
-function setRankMode(m, btn){ S.rankMode=m; S.page=1; document.querySelectorAll('.rankseg button').forEach(x=>x.classList.toggle('on', x.dataset.m===m)); render(); }
-
-/* ---------- broker profile ---------- */
-function openBroker(id){
-  const b = brokers.find(x=>x.id===id); if(!b) return;
-  const sc = scores[id];
-  const revs = reviewsAll.filter(r=>r.broker_id===id).sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
-  const pavg = {};
-  for (const [k] of PARAMS){ const vs = revs.map(r=>Number(r.ratings?.[k])).filter(v=>v>=1); if (vs.length) pavg[k]=vs.reduce((a,c)=>a+c,0)/vs.length; }
-  const mine = user && revs.find(r=>r.author_id===user.id);
-  const links = [
-    b.website && `<a class="plink" target="_blank" rel="noopener" href="${esc(b.website)}" onclick="event.stopPropagation()">🌐 Website</a>`,
-    b.linkedin && `<a class="plink" target="_blank" rel="noopener" href="${esc(b.linkedin)}" onclick="event.stopPropagation()">💼 LinkedIn</a>`,
-    b.phone && `<a class="plink" href="tel:${esc(b.phone.replace(/\D/g,''))}">📞 ${esc(b.phone)}</a>`,
-    b.slug && `<a class="plink" href="/broker-${esc(b.slug)}.html" onclick="event.stopPropagation()">📄 Profile page</a>`,
-  ].filter(Boolean).join('');
-  modal(`
-    <div class="mhead"><h3>Broker profile</h3>
-      ${myProfile?.is_admin?`<button class="plink" style="color:var(--red)" onclick="adminDeleteBroker('${b.id}')">Delete listing</button>`:''}
-      <button class="x" onclick="closeModal()">✕</button></div>
-    <div class="mbody">
-      <div class="phead">
-        ${b.photo?`<img class="avatar" src="${esc(b.photo)}" onerror="this.outerHTML='<div class=\\'avatar ph\\' style=\\'width:84px;height:84px\\'>${initials(b.name)}</div>'">`:`<div class="avatar ph" style="width:84px;height:84px">${initials(b.name)}</div>`}
-        <div style="min-width:0">
-          <div class="pname">${esc(b.name)}${b.claimed_by?' <span class="vpill" title="This broker has claimed and verified their profile">✓ Verified</span>':''}</div>
-          <div class="pfirm">${b.logo?`<img src="${esc(b.logo)}" onerror="this.remove()">`:''}<span>${esc(b.firm)}</span></div>
-          <div class="bmeta" style="margin-top:7px">
-            <span class="chip loc">${esc(b.city!=='—'?b.city+', ':'')}${esc(b.state!=='—'?b.state:'')}</span>
-            ${specsOf(b).map(s=>`<span class="chip">${esc(s)}</span>`).join('')}
-          </div>
-          <div class="plinks">${links||'<span class="hint">No contact details on file</span>'}</div>
-        </div>
-      </div>
-      ${b.claimed_by?`<div class="vbanner"><span class="vchk">✓</span><div><b>Verified broker.</b> ${esc(b.name.split(' ')[0])} has claimed and verified this profile. Contact details are broker-confirmed — but reviews and the rating stay fully independent.</div></div>`:''}
-      <div class="pscore">
-        ${sc?`<div class="big">${sc.score.toFixed(1)}</div>
-          <div><div class="stars" style="font-size:17px">${starStr(sc.score)}</div>
-          <div class="rcount" style="margin-top:2px">${sc.count} review${sc.count===1?'':'s'} · <span class="conf ${sc.conf==='Established'?'est':sc.conf==='Early'?'early':'prov'}">${sc.conf}</span></div></div>`
-        :`<div><b>Not yet rated.</b><div class="rcount" style="margin-top:2px">Worked with ${esc(b.name.split(' ')[0])}? Your review starts their record.</div></div>`}
-      </div>
-      ${(sc&&(sc.seller||sc.buyer))?`<div class="sechead">Seller vs buyer experience</div>
-        <div class="audience">
-          <div class="aud ${sc.seller?'':'empty'}"><div class="al">🏷️ As a seller</div>${sc.seller?`<div class="av">${sc.seller.score.toFixed(1)}</div><div class="an">${sc.seller.count} review${sc.seller.count===1?'':'s'}</div>`:`<div class="an">No seller reviews yet</div>`}</div>
-          <div class="aud ${sc.buyer?'':'empty'}"><div class="al">🔎 As a buyer</div>${sc.buyer?`<div class="av">${sc.buyer.score.toFixed(1)}</div><div class="an">${sc.buyer.count} review${sc.buyer.count===1?'':'s'}</div>`:`<div class="an">No buyer reviews yet</div>`}</div>
-        </div>
-        <p class="hint" style="margin-top:2px">Some brokers are stronger on one side of the deal — this splits the same reviews by who left them.</p>`:''}
-      ${Object.keys(pavg).length?`<div class="sechead">Rated parameters</div><div class="params">${PARAMS.filter(([k])=>pavg[k]).map(([k,label])=>`
-        <div class="prow"><span>${label}</span><span class="bar"><i style="width:${pavg[k]/5*100}%"></i></span><b>${pavg[k].toFixed(1)}</b></div>`).join('')}</div>`:''}
-      <div style="margin-top:18px"><button class="cta gold" onclick="openReviewForm('${b.id}')">${mine?'Edit your review':'Write a review'}</button></div>
-      <div class="sechead">Reviews <span class="n">${revs.length}</span></div>
-      ${revs.length?revs.map(r=>renderReview(r)).join(''):'<p class="hint">No reviews yet.</p>'}
-    </div>`);
+  if (!list.length){ $('#list').innerHTML = '<div class="empty">No brokers match. Try clearing filters.</div>'; $('#gate').innerHTML=''; return; }
+  $('#list').innerHTML = slice.map(card).join('') + (list.length>slice.length?`<button class="more" onclick="S.page++;render()">Show more (${list.length-slice.length} remaining)</button>`:'');
+  $('#gate').innerHTML = gated && slice.length>=list.length ? `<div class="gate"><div><h3>You've seen ${TBI.brokers.length} of ${window._totalBrokers||'all'} brokers</h3><p>Create a free account to see every broker, keep a ranked list, and track your deal conversations.</p></div><div class="acts"><button class="btn gold" onclick="TBI.openAuth('Create a free account')">Create free account</button><button class="btn linelt" onclick="TBI.openAuth()">Sign in</button></div></div>` : '';
 }
 
-function renderReview(r){
-  const p = profilesById[r.author_id];
-  const vals = Object.values(r.ratings||{}).map(Number).filter(v=>v>=1);
-  const overall = vals.length? vals.reduce((a,b)=>a+b,0)/vals.length : 0;
-  const mine = user && r.author_id===user.id;
-  const rep = reputationFor(r.author_id);
-  return `<div class="rev">
-    <div class="rtop">
-      <span class="who wholink" onclick="openReviewer('${r.author_id}')">${esc(p?.username||'Member')}</span>
-      ${p?.tier==='verified'?'<span class="vbadge">Verified</span>':''}
-      ${r.side==='seller'?'<span class="sidetag sell">Seller</span>':r.side==='buyer'?'<span class="sidetag buy">Buyer</span>':r.side==='both'?'<span class="sidetag">Buyer &amp; seller</span>':''}
-      <span class="repmini" title="Reviewer reputation">${rankTitle(rep.points)} · ${rep.points}pt</span>
-      <span class="stars">${starStr(overall)}</span>
-      <time>${new Date(r.created_at).toLocaleDateString('en-US',{month:'short',year:'numeric'})}</time>
-    </div>
-    ${r.text?`<div class="rtxt">${esc(r.text)}</div>`:''}
-    ${(r.ctx||r.stage)?`<div class="rctx">${esc([r.stage,r.ctx].filter(Boolean).join(' · '))}</div>`:''}
-    <div class="ract">
-      ${voteWidget(r.id)}
-      ${mine?'':`<button onclick="reportReview('${r.id}')">Report</button>`}
-      ${myProfile?.is_admin?`<button class="danger" onclick="adminRemoveReview('${r.id}')">Remove (admin)</button>`:''}
-    </div>
-  </div>`;
+async function stats(){
+  const s = await TBI.stats(); if (!s) return;
+  const $ = TBI.$;
+  $('#stat-brokers').textContent = Number(s.brokers).toLocaleString();
+  if (s.buyers >= TBI.STAT_FLOOR) { $('#stat-buyers').textContent = Number(s.buyers).toLocaleString(); $('#stat-buyers-wrap').hidden = false; }
+  if (s.reviews >= TBI.STAT_FLOOR) { $('#stat-reviews').textContent = Number(s.reviews).toLocaleString(); $('#stat-reviews-wrap').hidden = false; }
+  window._totalBrokers = Number(s.brokers).toLocaleString();
 }
 
-/* ---------- review form ---------- */
-function openReviewForm(bid){
-  if (!user) return openAuth('Sign in to write a review');
-  const b = brokers.find(x=>x.id===bid);
-  const mine = reviewsAll.find(r=>r.broker_id===bid && r.author_id===user.id);
-  const cur = mine?.ratings||{};
-  modal(`
-    <div class="mhead"><h3>Review ${esc(b.name)}</h3><button class="x" onclick="closeModal()">✕</button></div>
-    <div class="mbody">
-      <p class="hint" style="margin-top:-6px">Rate only what you experienced — skip any parameter you can't judge. At least one is required.</p>
-      <label class="fl">Were you the buyer or the seller in this deal? *</label>
-      <select class="fi" id="rf-side">
-        ${[['','Select…'],['seller','I was the seller'],['buyer','I was the buyer'],['both','Both / other']].map(([v,t])=>`<option value="${v}" ${((mine?.side)||(mine?'':( {buyer:'buyer',seller:'seller',both:'both'}[myProfile?.role]||'')))===v?'selected':''}>${t}</option>`).join('')}
-      </select>
-      <div id="rf-stars" style="margin-top:12px">${PARAMS.map(([k,label,sub])=>`
-        <div class="starrow"><div><div class="lab">${label}</div><div class="sub">${sub}</div></div>
-        <div class="starpick" data-k="${k}">${[1,2,3,4,5].map(i=>`<button data-v="${i}" class="${cur[k]>=i?'on':''}" onclick="pickStar(this)">★</button>`).join('')}</div></div>`).join('')}
-      </div>
-      <label class="fl">Your experience (optional, max 1500 chars)</label>
-      <textarea class="fi" id="rf-text" maxlength="1500" placeholder="What happened? Stick to what you saw first-hand.">${esc(mine?.text||'')}</textarea>
-      <label class="fl">Deal stage</label>
-      <select class="fi" id="rf-stage">
-        ${['','Closed a deal','Deal fell through','Listed, still on market','Early conversations','Buyer-side experience','Other'].map(s=>`<option ${mine?.stage===s?'selected':''}>${s}</option>`).join('')}
-      </select>
-      <label class="fl">Context (optional — e.g. "HVAC business, ~$2M revenue", max 120 chars)</label>
-      <input class="fi" id="rf-ctx" maxlength="120" value="${esc(mine?.ctx||'')}">
-      <div class="msg" id="rf-msg"></div>
-      <div style="margin-top:16px"><button class="cta" id="rf-save" onclick="saveReview('${bid}')">${mine?'Update review':'Publish review'}</button></div>
-      ${mine?`<div style="margin-top:8px"><button class="ghostbtn" onclick="deleteReview('${mine.id}','${bid}')">Delete my review</button></div>`:''}
-    </div>`);
-}
-function pickStar(btn){
-  const v = +btn.dataset.v, box = btn.parentElement;
-  const cur = [...box.children].filter(b=>b.classList.contains('on')).length;
-  const nv = (cur===v)? v-1 : v; // click same star again to lower/clear
-  [...box.children].forEach(b=>b.classList.toggle('on', +b.dataset.v<=nv));
-}
-async function saveReview(bid){
-  const ratings = {};
-  document.querySelectorAll('#rf-stars .starpick').forEach(box=>{
-    const n = [...box.children].filter(b=>b.classList.contains('on')).length;
-    if (n>0) ratings[box.dataset.k]=n;
-  });
-  const msg = $('#rf-msg');
-  if (!Object.keys(ratings).length){ msg.className='msg err'; msg.textContent='Rate at least one parameter.'; return; }
-  const side = $('#rf-side').value;
-  if (!side){ msg.className='msg err'; msg.textContent='Please pick whether you were the buyer or the seller.'; return; }
-  $('#rf-save').disabled = true;
-  const row = { broker_id:bid, author_id:user.id, ratings, side, text:$('#rf-text').value.trim(), stage:$('#rf-stage').value, ctx:$('#rf-ctx').value.trim(), status:'published' };
-  let { error } = await sb.from('reviews').upsert(row, { onConflict:'broker_id,author_id' });
-  if (error && /side/.test(error.message||'')) { delete row.side; ({ error } = await sb.from('reviews').upsert(row, { onConflict:'broker_id,author_id' })); }
-  $('#rf-save').disabled = false;
-  if (error){ msg.className='msg err'; msg.textContent = error.message; return; }
-  toast('Review published. Thank you for adding to the record.');
-  await loadAll(); closeModal(); openBroker(bid);
-}
-async function deleteReview(rid,bid){
-  if (!confirm('Delete your review permanently?')) return;
-  const { error } = await sb.from('reviews').delete().eq('id',rid);
-  if (error) return toast(error.message);
-  toast('Review deleted'); await loadAll(); closeModal(); openBroker(bid);
-}
-async function voteReview(rid, dir){
-  if (!user) return openAuth('Sign in to vote on reviews');
-  const cur = myVote.get(rid)||0;
-  if (cur===dir){
-    const { error } = await sb.from('review_votes').delete().eq('review_id',rid).eq('voter_id',user.id);
-    if (error) return toast(error.message);
-    myVote.delete(rid); votesByReview[rid]=(votesByReview[rid]||0)-dir;
-  } else {
-    const { error } = await sb.from('review_votes').upsert({review_id:rid, voter_id:user.id, value:dir}, { onConflict:'review_id,voter_id' });
-    if (error) return toast(error.message);
-    votesByReview[rid]=(votesByReview[rid]||0)-cur+dir; myVote.set(rid, dir);
-  }
-  refreshVoteRow(rid);
-}
-function voteWidget(rid){
-  const net = votesByReview[rid]||0, mv = myVote.get(rid)||0;
-  return `<span class="votes" id="vote-${rid}">
-    <button class="vbtn up ${mv===1?'on':''}" title="Helpful" onclick="voteReview('${rid}',1)">▲</button>
-    <b class="vnet ${net>0?'pos':net<0?'neg':''}">${net>0?'+'+net:net}</b>
-    <button class="vbtn down ${mv===-1?'on':''}" title="Not helpful" onclick="voteReview('${rid}',-1)">▼</button>
-    <span class="vlbl">helpful?</span>
-  </span>`;
-}
-function refreshVoteRow(rid){ const el=document.getElementById('vote-'+rid); if(el) el.outerHTML=voteWidget(rid); }
-
-/* ---------- reviewer reputation, badges, public profiles, leaderboard ---------- */
-function reputationFor(uid){
-  const rs = reviewsAll.filter(r=>r.author_id===uid);
-  let helpfulUp=0, detailed=0;
-  for (const r of rs){ helpfulUp += Math.max(0, votesByReview[r.id]||0); if ((r.text||'').length>=100) detailed++; }
-  const verified = profilesById[uid]?.tier==='verified';
-  const reviews = rs.length;
-  const points = reviews*10 + helpfulUp*5 + detailed*5 + (verified?50:0);
-  const badges = [
-    {ic:'✍️', label:'First Review',    earned:reviews>=1,   desc:'Write your first review'},
-    {ic:'📝', label:'Contributor',     earned:reviews>=5,   desc:'Write 5 reviews'},
-    {ic:'🏅', label:'Prolific',        earned:reviews>=15,  desc:'Write 15 reviews'},
-    {ic:'📖', label:'Detailed',        earned:detailed>=3,  desc:'3 reviews of 100+ characters'},
-    {ic:'👍', label:'Helpful',         earned:helpfulUp>=10,desc:'Earn 10 helpful votes'},
-    {ic:'⭐', label:'Community Voice',  earned:helpfulUp>=50,desc:'Earn 50 helpful votes'},
-    {ic:'✅', label:'Verified',        earned:verified,     desc:'Verify a real transaction (admin-approved)'},
-  ];
-  return {reviews, helpfulUp, detailed, verified, points, badges, earned:badges.filter(b=>b.earned).length};
-}
-function rankTitle(p){ return p>=300?'Elite Reviewer':p>=120?'Trusted Reviewer':p>=40?'Contributor':'Newcomer'; }
-
-function openReviewer(uid){
-  const p = profilesById[uid], rep = reputationFor(uid);
-  const rs = reviewsAll.filter(r=>r.author_id===uid).sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
-  const bName = id => (brokers.find(b=>b.id===id)||{}).name || 'a broker';
-  modal(`
-    <div class="mhead"><h3>Reviewer profile</h3><button class="x" onclick="closeModal()">✕</button></div>
-    <div class="mbody">
-      <div class="repcard">
-        <div><div class="pts">${rep.points}</div><div class="sub2">points</div></div>
-        <div style="min-width:0">
-          <div class="tt">${esc(p?.username||'Member')} ${rep.verified?'<span class="vbadge">Verified</span>':''}</div>
-          <div class="sub2">${rankTitle(rep.points)} · ${rep.reviews} review${rep.reviews===1?'':'s'} · ${rep.helpfulUp} helpful vote${rep.helpfulUp===1?'':'s'} · ${rep.earned}/7 badges</div>
-        </div>
-      </div>
-      <div class="sechead">Badges</div>
-      <div class="badgegrid">${rep.badges.map(b=>`<div class="badge ${b.earned?'earned':''}"><div class="ic">${b.ic}</div><div class="bl">${esc(b.label)}</div><div class="bd">${esc(b.desc)}</div></div>`).join('')}</div>
-      <div class="sechead">Reviews <span class="n">${rs.length}</span></div>
-      ${rs.length? rs.map(r=>{
-        const vals=Object.values(r.ratings||{}).map(Number).filter(v=>v>=1); const ov=vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:0;
-        return `<div class="rev"><div class="rtop"><a class="who wholink" onclick="closeModal();openBroker('${r.broker_id}')">${esc(bName(r.broker_id))}</a><span class="stars">${starStr(ov)}</span><time>${new Date(r.created_at).toLocaleDateString('en-US',{month:'short',year:'numeric'})}</time></div>${r.text?`<div class="rtxt">${esc(r.text)}</div>`:''}<div class="ract">${voteWidget(r.id)}</div></div>`;
-      }).join('') : '<p class="hint">No reviews yet.</p>'}
-    </div>`);
-}
-
-function openLeaderboard(){
-  const uids=[...new Set(reviewsAll.map(r=>r.author_id))];
-  const rows=uids.map(u=>({u, name:profilesById[u]?.username||'Member', rep:reputationFor(u)}))
-    .sort((a,b)=>b.rep.points-a.rep.points).slice(0,50);
-  modal(`
-    <div class="mhead"><h3>🏆 Top reviewers</h3><button class="x" onclick="closeModal()">✕</button></div>
-    <div class="mbody">
-      <p class="hint" style="margin-top:-4px">Ranked by reputation — points come from helpful, verified and detailed reviews, not just volume.</p>
-      ${rows.length? rows.map((row,i)=>`<div class="lbrow" onclick="openReviewer('${row.u}')">
-        <span class="rk">${i+1}</span>
-        <div style="min-width:0"><div class="nm2">${esc(row.name)} ${row.rep.verified?'<span class="vbadge">Verified</span>':''}</div>
-        <div class="mt">${rankTitle(row.rep.points)} · ${row.rep.reviews} review${row.rep.reviews===1?'':'s'} · ${row.rep.earned}/7 badges</div></div>
-        <span class="pp">${row.rep.points}</span></div>`).join('')
-      : '<p class="hint">No reviewers yet — be the first to write a review.</p>'}
-    </div>`);
-}
-async function reportReview(rid){
-  if (!user) return openAuth('Sign in to report a review');
-  const reason = prompt('Why are you reporting this review? (e.g. not first-hand, abusive, wrong broker)');
-  if (!reason) return;
-  const { error } = await sb.from('reports').insert({review_id:rid, reporter_id:user.id, reason:reason.slice(0,200)});
-  toast(error? error.message : 'Reported — a moderator will take a look.');
-}
-
-/* ---------- watchlist ---------- */
-async function toggleWatch(bid){
-  if (!user) return openAuth();
-  if (watch.has(bid)){ watch.delete(bid); await sb.from('watchlists').delete().eq('user_id',user.id).eq('broker_id',bid); }
-  else { watch.add(bid); await sb.from('watchlists').insert({user_id:user.id, broker_id:bid}); }
-  render();
-}
-
-/* ---------- auth ---------- */
-function openAuth(title){
-  modal(`
-    <div class="mhead"><h3>${esc(title||'Sign in / Join')}</h3><button class="x" onclick="closeModal()">✕</button></div>
-    <div class="mbody">
-      <button class="gbtn" onclick="googleSignIn()"><svg width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.1H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3l5.7-5.7C34.3 6.1 29.4 4 24 4 13 4 4 13 4 24s9 20 20 20 20-9 20-20c0-1.3-.1-2.6-.4-3.9z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.9 1.2 8 3l5.7-5.7C34.3 6.1 29.4 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.1H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C36.9 40.4 44 35 44 24c0-1.3-.1-2.6-.4-3.9z"/></svg>Continue with Google</button>
-      <div class="ordiv"><span>or</span></div>
-      <p class="hint">No password needed — we email you a one-time sign-in link.</p>
-      <label class="fl">Email</label>
-      <input class="fi" id="au-email" type="email" placeholder="you@example.com" onkeydown="if(event.key==='Enter')sendLink()">
-      <div class="msg" id="au-msg"></div>
-      <div style="margin-top:16px"><button class="cta" id="au-btn" onclick="sendLink()">Email me a sign-in link</button></div>
-    </div>`, true);
-}
-async function googleSignIn(){
-  const msg = $('#au-msg');
-  const { error } = await sb.auth.signInWithOAuth({ provider:'google', options:{ redirectTo: location.origin+location.pathname } });
-  if (error){ msg.className='msg err'; msg.textContent='Google sign-in isn\'t enabled yet — use the email link below.'; }
-}
-async function sendLink(){
-  const email = $('#au-email').value.trim(), msg = $('#au-msg');
-  if (!/.+@.+\..+/.test(email)){ msg.className='msg err'; msg.textContent='Enter a valid email.'; return; }
-  $('#au-btn').disabled = true;
-  const { error } = await sb.auth.signInWithOtp({ email, options:{ emailRedirectTo: location.origin+location.pathname } });
-  $('#au-btn').disabled = false;
-  if (error){ msg.className='msg err'; msg.textContent=error.message; return; }
-  msg.className='msg ok'; msg.textContent='Link sent! Check your inbox (and spam) and click it to sign in.';
-}
-async function onUser(u){
-  user = u;
-  if (user){
-    const { data } = await sb.from('profiles').select('*').eq('id',user.id).single();
-    myProfile = data;
-    const { data: w } = await sb.from('watchlists').select('broker_id').eq('user_id',user.id);
-    watch = new Set((w||[]).map(x=>x.broker_id));
-    if (myProfile && !myProfile.username) openUsername();
-  } else { myProfile = null; watch = new Set(); }
-  paintAuth();
-}
-function paintAuth(){
-  $('#authzone').innerHTML = user
-    ? `<button class="uchip" onclick="openAccount()"><span class="dot"></span>${esc(myProfile?.username||'account')}${myProfile?.is_admin?' · admin':''}</button>`
-    : `<button class="hbtn ghost" onclick="openAuth()">Sign in</button>`;
-  $('#f-signin').style.display = user? 'none':'';
-  $('#adminbar').innerHTML = myProfile?.is_admin
-    ? `<div class="adminbar"><b>Admin mode.</b> Remove reviews and delete listings from any profile. <button style="color:var(--blue);font-weight:700" onclick="openManageBrokers()">Manage brokers</button> <button style="color:var(--blue);font-weight:700" onclick="openVerifications()">Verification requests</button> <button style="color:var(--blue);font-weight:700" onclick="openRequests()">Listing requests</button></div>` : '';
-  render();
-}
-function openUsername(){
-  modal(`
-    <div class="mhead"><h3>Pick your username</h3></div>
-    <div class="mbody">
-      <p class="hint" style="margin-top:-4px">Shown publicly on your reviews. Your email stays private.</p>
-      <label class="fl">Username</label>
-      <input class="fi" id="un-name" maxlength="24" placeholder="e.g. TexasAcquirer">
-      <label class="fl">I'm primarily a…</label>
-      <select class="fi" id="un-role"><option value="buyer">Buyer</option><option value="seller">Seller</option><option value="both">Both</option><option value="other">Other</option></select>
-      <div class="msg" id="un-msg"></div>
-      <div style="margin-top:16px"><button class="cta" onclick="saveUsername()">Save</button></div>
-    </div>`, true);
-}
-async function saveUsername(){
-  const name = $('#un-name').value.trim(), msg = $('#un-msg');
-  if (name.length<3){ msg.className='msg err'; msg.textContent='At least 3 characters.'; return; }
-  const { error } = await sb.from('profiles').update({username:name, role:$('#un-role').value}).eq('id',user.id);
-  if (error){ msg.className='msg err'; msg.textContent = error.code==='23505'?'That username is taken.':error.message; return; }
-  myProfile.username = name; closeModal(); paintAuth(); toast(`Welcome, ${name}!`);
-}
-function openAccount(){
-  const rep = reputationFor(user.id);
-  const rs = reviewsAll.filter(r=>r.author_id===user.id).sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
-  const bName = id => (brokers.find(b=>b.id===id)||{}).name || 'a broker';
-  modal(`
-    <div class="mhead"><h3>${esc(myProfile?.username||'Your account')}</h3><button class="x" onclick="closeModal()">✕</button></div>
-    <div class="mbody">
-      <div class="repcard">
-        <div><div class="pts">${rep.points}</div><div class="sub2">points</div></div>
-        <div style="min-width:0">
-          <div class="tt">${esc(myProfile?.username||'Member')} ${rep.verified?'<span class="vbadge">Verified</span>':''}</div>
-          <div class="sub2">${rankTitle(rep.points)} · ${rep.reviews} review${rep.reviews===1?'':'s'} · ${rep.helpfulUp} helpful vote${rep.helpfulUp===1?'':'s'} · ${rep.earned}/7 badges</div>
-        </div>
-      </div>
-      <div class="sechead">Badges</div>
-      <div class="badgegrid">${rep.badges.map(b=>`<div class="badge ${b.earned?'earned':''}"><div class="ic">${b.ic}</div><div class="bl">${esc(b.label)}</div><div class="bd">${esc(b.desc)}</div></div>`).join('')}</div>
-      <div class="sechead">My reviews <span class="n">${rs.length}</span></div>
-      ${rs.length? rs.map(r=>{
-        const vals=Object.values(r.ratings||{}).map(Number).filter(v=>v>=1); const ov=vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:0;
-        return `<div class="rev"><div class="rtop"><a class="who wholink" onclick="closeModal();openBroker('${r.broker_id}')">${esc(bName(r.broker_id))}</a><span class="stars">${starStr(ov)}</span><time>${new Date(r.created_at).toLocaleDateString('en-US',{month:'short',year:'numeric'})}</time></div>${r.text?`<div class="rtxt">${esc(r.text)}</div>`:''}<div class="ract">${voteWidget(r.id)}<button onclick="closeModal();openReviewForm('${r.broker_id}')">Edit</button></div></div>`;
-      }).join('') : '<p class="hint">You haven\'t written any reviews yet. Find a broker you\'ve worked with and be the first to rate them.</p>'}
-      <div class="sechead">Account</div>
-      <p class="hint">${esc(user.email)} · ${myProfile?.tier==='verified'?'Verified member':'Member'}${myProfile?.is_admin?' · Administrator':''}</p>
-      ${myProfile?.tier!=='verified'?`<div style="margin-top:10px"><button class="ghostbtn" onclick="requestVerify()">Request verified status</button><p class="hint" style="margin-top:6px">Verified reviewers have proven a real transaction. An admin reviews each request; once approved you get a Verified badge and your reviews carry ~2× weight.</p></div>`:''}
-      <div style="margin-top:14px"><button class="ghostbtn" onclick="signOut()">Sign out</button></div>
-    </div>`);
-}
-async function requestVerify(){
-  const note = prompt('To verify, tell us which broker you transacted with and roughly when. An admin may ask for documentation.');
-  if (note===null) return;
-  let { error } = await sb.from('verification_requests').insert({user_id:user.id, kind:'reviewer', note:(note||'').slice(0,500)});
-  if (error) { ({ error } = await sb.from('verification_requests').insert({user_id:user.id, kind:(note||'reviewer').slice(0,60)})); }
-  toast(error? 'Request already on file or failed.' : 'Verification requested — an admin will review it.');
-  closeModal();
-}
-async function signOut(){ await sb.auth.signOut(); closeModal(); toast('Signed out'); }
-
-/* ---------- listing requests & admin ---------- */
-function openRequest(){
-  modal(`
-    <div class="mhead"><h3>Request a broker listing</h3><button class="x" onclick="closeModal()">✕</button></div>
-    <div class="mbody">
-      <p class="hint" style="margin-top:-4px">Worked with a broker who isn't listed? Tell us and we'll add them.</p>
-      <label class="fl">Broker name *</label><input class="fi" id="lr-name">
-      <label class="fl">Firm</label><input class="fi" id="lr-firm">
-      <label class="fl">City / State</label><input class="fi" id="lr-loc">
-      <label class="fl">Anything else</label><input class="fi" id="lr-info" placeholder="website, phone, why they should be listed…">
-      <div class="msg" id="lr-msg"></div>
-      <div style="margin-top:16px"><button class="cta" onclick="sendRequest()">Submit</button></div>
-    </div>`, true);
-}
-async function sendRequest(){
-  if (!user) { closeModal(); return openAuth('Sign in to request a listing'); }
-  const name = $('#lr-name').value.trim(), msg = $('#lr-msg');
-  if (!name){ msg.className='msg err'; msg.textContent='Broker name is required.'; return; }
-  const { error } = await sb.from('listing_requests').insert({name, firm:$('#lr-firm').value.trim(), location:$('#lr-loc').value.trim(), info:$('#lr-info').value.trim(), requested_by:user.id});
-  if (error){ msg.className='msg err'; msg.textContent=error.message; return; }
-  closeModal(); toast('Thanks — request received.');
-}
-async function openRequests(){
-  const { data, error } = await sb.from('listing_requests').select('*').eq('status','open').order('created_at');
-  if (error) return toast(error.message);
-  modal(`
-    <div class="mhead"><h3>Open listing requests</h3><button class="x" onclick="closeModal()">✕</button></div>
-    <div class="mbody">${(data||[]).length? data.map(r=>`
-      <div class="rev"><div class="rtop"><span class="who">${esc(r.name)}</span><time>${new Date(r.created_at).toLocaleDateString()}</time></div>
-      <div class="rctx">${esc([r.firm,r.location,r.info].filter(Boolean).join(' · '))||'—'}</div>
-      <div class="ract"><button class="on" onclick="actRequest('${r.id}','approved')">Mark approved</button><button class="danger" onclick="actRequest('${r.id}','dismissed')">Dismiss</button></div></div>`).join('')
-      : '<p class="hint">No open requests.</p>'}</div>`);
-}
-async function actRequest(id, status){
-  await sb.from('listing_requests').update({status}).eq('id',id);
-  toast(status==='approved'?'Marked approved — add the broker via SQL or ask Claude to.':'Dismissed'); openRequests();
-}
-async function adminRemoveReview(rid){
-  if (!confirm('Remove this review from the site?')) return;
-  const { error } = await sb.from('reviews').update({status:'removed'}).eq('id',rid);
-  if (error) return toast(error.message);
-  toast('Review removed'); await loadAll(); closeModal();
-}
-async function adminDeleteBroker(bid){
-  if (!confirm('Delete this broker listing AND all its reviews permanently?')) return;
-  const { error } = await sb.from('brokers').delete().eq('id',bid);
-  if (error) return toast(error.message);
-  toast('Listing deleted'); await loadAll(); closeModal();
-}
-
-/* ---------- admin: manage brokers (claims) ---------- */
-async function openManageBrokers(){
-  if (!myProfile?.is_admin) return;
-  modal(`<div class="mhead"><h3>Manage brokers</h3><button class="x" onclick="closeModal()">✕</button></div>
-    <div class="mbody" id="mng-body"><p class="hint">Loading claims…</p></div>`);
-  const { data:claims, error } = await sb.from('broker_claims')
-    .select('*').in('status',['pending','approved']).order('created_at',{ascending:false});
-  if (error){ $('#mng-body').innerHTML = `<div class="msg err">${esc(error.message)}</div>`; return; }
-  const bById = Object.fromEntries(brokers.map(b=>[b.id,b]));
-  const pending = (claims||[]).filter(c=>c.status==='pending');
-  const approvedBy = {}; for (const c of (claims||[])) if (c.status==='approved') approvedBy[c.broker_id]=c;
-  const claimed = brokers.filter(b=>b.claimed_by).sort((a,b)=>a.name.localeCompare(b.name));
-  const who = c => esc((profilesById[c.user_id]?.username)||'member') + (c.work_email?' · '+esc(c.work_email):'') + (c.method&&c.method!=='email'?' · via '+esc(c.method):'');
-  const pendHtml = pending.length ? pending.map(c=>{
-    const b=bById[c.broker_id];
-    return `<div class="rev"><div class="rtop"><span class="who">${b?esc(b.name):'(unknown broker)'}</span><time>${new Date(c.created_at).toLocaleDateString()}</time></div>
-      <div class="rctx">Claimant: ${who(c)}${c.evidence?'<br>Evidence: '+esc(c.evidence):''}</div>
-      <div class="ract"><button class="on" onclick="approveClaim('${c.id}')">Approve</button><button class="danger" onclick="rejectClaim('${c.id}')">Reject</button></div></div>`;
-  }).join('') : '<p class="hint">No pending claims.</p>';
-  const claimedHtml = claimed.length ? claimed.map(b=>{
-    const c=approvedBy[b.id];
-    const owner = c ? who(c) : esc(profilesById[b.claimed_by]?.username || 'assigned user');
-    return `<div class="rev mng-row" data-n="${esc((b.name+' '+(b.firm||'')).toLowerCase())}">
-      <div class="rtop"><span class="who">${esc(b.name)}</span><span class="hint">${esc(b.firm||'')}</span></div>
-      <div class="rctx">Owner: ${owner}</div>
-      <div class="ract"><a class="plink" href="/broker-${esc(b.slug)}.html" target="_blank" rel="noopener">View page</a><button class="danger" onclick="revokeClaim('${b.id}')">Revoke claim</button></div></div>`;
-  }).join('') : '<p class="hint">No brokers are currently claimed.</p>';
-  $('#mng-body').innerHTML = `
-    <h4 style="margin:2px 0 8px;font-size:14px">Pending claims (${pending.length})</h4>${pendHtml}
-    <h4 style="margin:22px 0 8px;font-size:14px">Claimed brokers (${claimed.length})</h4>
-    <input class="fi" id="mng-search" placeholder="Filter by broker or firm name…" oninput="filterManage(this.value)">
-    <div id="mng-claimed" style="margin-top:6px">${claimedHtml}</div>`;
-}
-function filterManage(q){
-  q=(q||'').trim().toLowerCase();
-  document.querySelectorAll('#mng-claimed .mng-row').forEach(el=>{
-    el.style.display = (!q || el.dataset.n.includes(q)) ? '' : 'none';
-  });
-}
-async function approveClaim(cid){
-  if (!confirm('Approve this claim? This person becomes the verified owner of the broker page. Other pending claims on the same broker are auto-rejected.')) return;
-  const { error } = await sb.from('broker_claims').update({status:'approved'}).eq('id',cid);
-  if (error) return toast(error.message);
-  toast('Claim approved'); await loadAll(); openManageBrokers();
-}
-async function rejectClaim(cid){
-  const { error } = await sb.from('broker_claims').update({status:'rejected'}).eq('id',cid);
-  if (error) return toast(error.message);
-  toast('Claim rejected'); openManageBrokers();
-}
-async function revokeClaim(bid){
-  if (!confirm('Return this broker page to UNCLAIMED? The current owner immediately loses the ability to post or edit listings. Reviews and scores are unaffected.')) return;
-  const e1 = await sb.from('brokers').update({claimed_by:null}).eq('id',bid);
-  if (e1.error) return toast(e1.error.message);
-  await sb.from('broker_claims').update({status:'rejected'}).eq('broker_id',bid).eq('status','approved');
-  toast('Claim revoked — page is unclaimed'); await loadAll(); openManageBrokers();
-}
-
-/* ---------- admin: verification queue ---------- */
-async function openVerifications(){
-  if (!myProfile?.is_admin) return;
-  modal(`<div class="mhead"><h3>Verification requests</h3><button class="x" onclick="closeModal()">✕</button></div>
-    <div class="mbody" id="vq-body"><p class="hint">Loading…</p></div>`);
-  const { data, error } = await sb.from('verification_requests').select('*').eq('status','pending').order('created_at');
-  if (error){ $('#vq-body').innerHTML = `<div class="msg err">${esc(error.message)}</div>`; return; }
-  const rows = data||[];
-  $('#vq-body').innerHTML = `<p class="hint" style="margin-top:-4px">Approving grants the Verified badge and ~2× review weight. Only approve when you're satisfied the person did a real transaction.</p>` + (rows.length ? rows.map(v=>{
-    const p = profilesById[v.user_id];
-    return `<div class="rev"><div class="rtop"><span class="who">${esc(p?.username||'Member')}</span>${p?.tier==='verified'?'<span class="vbadge">already verified</span>':''}<time>${new Date(v.created_at).toLocaleDateString()}</time></div>
-      <div class="rctx">${esc(v.note||v.kind||'No details provided')}</div>
-      <div class="ract"><button class="on" onclick="approveVerify('${v.id}','${v.user_id}')">Approve — grant Verified</button><button class="danger" onclick="rejectVerify('${v.id}')">Reject</button></div></div>`;
-  }).join('') : '<p class="hint">No pending verification requests.</p>');
-}
-async function approveVerify(id, uid){
-  if (!confirm('Grant Verified status to this member? Their reviews will carry ~2× weight and show a Verified badge.')) return;
-  const e1 = await sb.from('profiles').update({tier:'verified'}).eq('id',uid);
-  if (e1.error) return toast(e1.error.message);
-  await sb.from('verification_requests').update({status:'approved'}).eq('id',id);
-  toast('Verified status granted'); await loadAll(); openVerifications();
-}
-async function rejectVerify(id){
-  const { error } = await sb.from('verification_requests').update({status:'rejected'}).eq('id',id);
-  if (error) return toast(error.message);
-  toast('Request rejected'); openVerifications();
-}
-
-/* ---------- modal plumbing ---------- */
-function modal(html, small){
-  $('#modals').innerHTML = `<div class="overlay" onclick="if(event.target===this)closeModal()"><div class="modal ${small?'sm':''}">${html}</div></div>`;
-  document.body.style.overflow='hidden';
-}
-function closeModal(){ $('#modals').innerHTML=''; document.body.style.overflow=''; }
-document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeModal(); });
-
-/* ---------- boot ---------- */
-sb.auth.onAuthStateChange((_e, session)=> onUser(session?.user||null));
 (async ()=>{
-  const { data:{ session } } = await sb.auth.getSession();
-  await onUser(session?.user||null);
-  await loadAll();
+  document.getElementById('minnote').textContent = TBI.MIN.score;
+  await TBI.ready;
+  stats();
+  // Signed-out visitors get the first GATE brokers (the request itself is limited, not the DOM).
+  gated = !TBI.user;
+  try { await TBI.load({ limitBrokers: gated ? TBI.GATE : 0 }); }
+  catch(e){ TBI.$('#list').innerHTML = '<div class="empty">Could not reach the database. Please refresh in a moment.</div>'; return; }
+  await TBI.loadMyList();
+  buildFilters(); render();
+  const mode = TBI.qs('mode'); if (['seller','buyer'].includes(mode)) setMode(mode);
+  TBI.onAuth(async (u)=>{ if (u && gated) { gated=false; await TBI.load({force:true}); await TBI.loadMyList(); buildFilters(); render(); } });
 })();
 </script>
 </body>

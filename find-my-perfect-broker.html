@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Find My Perfect Broker — Free Business Broker Matching Quiz | The Broker Index</title>
+<meta name="description" content="Selling a business? Answer four quick questions — location, industry, revenue and what matters most to you — and get matched to the five best-rated business brokers for your sale, with the reasons why. Free, no obligation, optional email introduction.">
+<link rel="canonical" href="https://ratemybusinessbroker.com/find-my-perfect-broker.html">
+<link rel="icon" href="/favicon.ico" sizes="48x48"><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta property="og:type" content="website"><meta property="og:site_name" content="The Broker Index">
+<meta property="og:title" content="Find My Perfect Broker — free matching quiz">
+<meta property="og:description" content="Four questions. Five matched business brokers, ranked, with the reasons. Optional email introduction.">
+<meta property="og:url" content="https://ratemybusinessbroker.com/find-my-perfect-broker.html">
+<meta property="og:image" content="https://ratemybusinessbroker.com/og-image.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,650&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/_shared.css">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"Find My Perfect Broker","url":"https://ratemybusinessbroker.com/find-my-perfect-broker.html","applicationCategory":"BusinessApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"A free quiz that matches business owners planning a sale with the best-rated M&A business brokers for their state, industry, deal size and priorities.","publisher":{"@type":"Organization","name":"The Broker Index","url":"https://ratemybusinessbroker.com/"}}
+</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-KTQ1BWRBJC"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-KTQ1BWRBJC');</script>
+</head>
+<body data-nav="quiz">
+<div id="site-header"></div>
+
+<main class="wrap app" style="max-width:800px">
+  <div class="pagehead">
+    <div class="eyebrow">Free tool</div>
+    <h1>Find My Perfect Broker</h1>
+    <p class="lead">Answer four questions and we'll match you with the five brokers best suited to your sale — based on where they work, what they specialise in, and how past clients rated them. Takes about two minutes.</p>
+  </div>
+
+  <div class="progress" id="progress"></div>
+  <div id="quiz" class="section" style="margin-top:14px"><div class="skel"></div></div>
+
+  <div class="section" id="how" style="margin-top:40px">
+    <h2>How the matching works</h2>
+    <p class="sub" style="max-width:680px;margin-top:8px;line-height:1.6">We start with every broker who covers your state, then rank by industry fit, deal-size fit, and — where a broker has enough reviews — how sellers rated them on the parameters you said matter most. Brokers without reviews yet can still match on fit; we say so in the result rather than inventing a score. Rankings can't be bought, and requesting an introduction costs nothing. Read the full <a href="/methodology.html">methodology</a>.</p>
+  </div>
+</main>
+
+<div id="site-footer"></div>
+<div id="modals"></div><div class="toast" id="toast"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="/_shell.js"></script>
+<script src="/_app.js"></script>
+<script>
+const STATES = {AL:'Alabama',AK:'Alaska',AZ:'Arizona',AR:'Arkansas',CA:'California',CO:'Colorado',CT:'Connecticut',DE:'Delaware',DC:'Washington, D.C.',FL:'Florida',GA:'Georgia',HI:'Hawaii',ID:'Idaho',IL:'Illinois',IN:'Indiana',IA:'Iowa',KS:'Kansas',KY:'Kentucky',LA:'Louisiana',ME:'Maine',MD:'Maryland',MA:'Massachusetts',MI:'Michigan',MN:'Minnesota',MS:'Mississippi',MO:'Missouri',MT:'Montana',NE:'Nebraska',NV:'Nevada',NH:'New Hampshire',NJ:'New Jersey',NM:'New Mexico',NY:'New York',NC:'North Carolina',ND:'North Dakota',OH:'Ohio',OK:'Oklahoma',OR:'Oregon',PA:'Pennsylvania',RI:'Rhode Island',SC:'South Carolina',SD:'South Dakota',TN:'Tennessee',TX:'Texas',UT:'Utah',VT:'Vermont',VA:'Virginia',WA:'Washington',WV:'West Virginia',WI:'Wisconsin',WY:'Wyoming'};
+const TIMELINES = ['Ready now','Within 6 months','Within 12 months','Just exploring'];
+const A = { step:1, state:'', industry:'', size:'', timeline:'', priorities:[], picked:new Set(), results:[] };
+const esc = TBI.esc, $ = TBI.$;
+
+// industry keyword → specialty text match (brokers.specialty is free text separated by |)
+const IND_KEYS = {'Manufacturing':['manufactur','industrial'],'Professional services':['service','consult','staffing','agency','account','insurance'],'Healthcare':['health','medical','dental','pharm','clinic','vet'],'Restaurants & hospitality':['restaurant','hospitality','food','bar','hotel','franchise'],'Construction & trades':['construct','contractor','hvac','plumb','electric','roof','landscap','trade'],'Technology & SaaS':['tech','software','saas','it ','digital','ecommerce'],'Retail & e-commerce':['retail','e-commerce','ecommerce','store','amazon'],'Transportation & logistics':['transport','logistic','trucking','freight','auto'],'Distribution & wholesale':['distribut','wholesale','supply'],'Home services':['home service','cleaning','pest','pool','lawn','landscap'],'Other':[]};
+
+function progress(){ $('#progress').innerHTML = A.step<=4 ? [1,2,3,4].map(n=>`<i class="${n<=A.step?'on':''}"></i>`).join('') + `<span>Step ${A.step} of 4</span>` : ''; }
+function choice(list, key, cls, sub){ return `<div class="choice ${cls||''}">${list.map(([v,l,s])=>`<button type="button" class="${A[key]===v?'on':''}" onclick="pick('${key}','${esc(v)}')">${esc(l)}${s?`<small>${esc(s)}</small>`:''}</button>`).join('')}</div>`; }
+function pick(key, v){ A[key]=v; if (key==='size') { renderQuiz(); return; } if (key!=='priorities') { A.step++; renderQuiz(); } }
+function togglePri(k){ const i=A.priorities.indexOf(k); if(i>=0) A.priorities.splice(i,1); else if (A.priorities.length<2) A.priorities.push(k); renderQuiz(); }
+
+function renderQuiz(){
+  progress();
+  const q = $('#quiz');
+  if (A.step===1){
+    const states = [...new Set(TBI.brokers.map(b=>b.state).filter(s=>STATES[s]))].sort((a,b)=>STATES[a].localeCompare(STATES[b]));
+    q.innerHTML = `<h2>Where is the business located?</h2><p class="sub" style="margin-bottom:12px">We match on brokers who actually work in your state.</p>
+      <select class="fi" style="max-width:360px" onchange="if(this.value)pick('state',this.value)"><option value="">Choose a state…</option>${states.map(s=>`<option value="${s}">${STATES[s]}</option>`).join('')}</select>`;
+  } else if (A.step===2){
+    q.innerHTML = `<h2>What industry is it in?</h2><p class="sub" style="margin-bottom:12px">Brokers who list your industry as a specialty rank higher.</p>` + choice(TBI.INDUSTRIES.map(i=>[i,i]), 'industry', 'c3');
+  } else if (A.step===3){
+    q.innerHTML = `<h2>Roughly what is annual revenue?</h2><p class="sub" style="margin-bottom:12px">Used to match deal size and to tell the broker what to expect.</p>` + choice(TBI.DEAL_SIZES.map(s=>[s,s]), 'size', 'c3')
+      + `<label class="fl" style="margin-top:22px">How soon do you want to sell?</label><div class="choice c4">${TIMELINES.map(t=>`<button type="button" class="${A.timeline===t?'on':''}" onclick="A.timeline='${t}';renderQuiz()">${t}</button>`).join('')}</div>
+      <div style="margin-top:18px"><button class="btn navy" ${A.size?'':'disabled'} onclick="A.step=4;renderQuiz()">Continue</button></div>`;
+  } else if (A.step===4){
+    q.innerHTML = `<h2>What matters most to you?</h2><p class="sub" style="margin-bottom:12px">Pick up to two. We weight the match toward brokers who score highest on these.</p>
+      <div class="choice">${TBI.PARAMS.map(([k,l,s])=>`<button type="button" class="${A.priorities.includes(k)?'on':''}" onclick="togglePri('${k}')">${l}<small>${s}</small></button>`).join('')}</div>
+      <div style="margin-top:18px;display:flex;gap:10px;align-items:center"><button class="btn gold" onclick="finish()">See my matches</button><button class="btn line sm" onclick="A.step=3;renderQuiz()">Back</button></div>`;
+  } else renderResults();
+}
+
+function matchAll(){
+  const keys = IND_KEYS[A.industry]||[];
+  return TBI.brokers.map(b=>{
+    let fit = 0, why = [];
+    if (b.state===A.state) { fit += 40; why.push('works in '+STATES[A.state]); } else return null;
+    const spec = (b.specialty||'').toLowerCase();
+    if (keys.some(k=>spec.includes(k))) { fit += 25; why.push(A.industry.toLowerCase()+' specialist'); }
+    else if (spec.includes('general')) { fit += 8; }
+    if (b.claimed_by) { fit += 5; why.push('verified profile'); }
+    const sc = TBI.scores[b.id], full = TBI.shown(sc), s = TBI.shownSide(sc,'seller');
+    let q = 0;
+    if (full) {
+      const base = s ? s.score : full.score;
+      q = base * 3;                                              // up to 30 points from quality
+      if (A.priorities.length) { const p = A.priorities.map(k=>(s&&s.params[k])||full.params[k]).filter(Boolean); if (p.length){ const m=p.reduce((a,c)=>a+c,0)/p.length; q += (m-7)*4; why.push('rated '+TBI.fmt(m)+' on '+A.priorities.map(k=>TBI.PARAMS.find(x=>x[0]===k)[1].toLowerCase()).join(' & ')); } }
+      why.push(full.count+' review'+(full.count===1?'':'s')+(s?' · sellers rate '+TBI.fmt(s.score):''));
+    } else why.push(sc?sc.count+' review'+(sc.count===1?'':'s')+' so far':'no reviews yet — matched on fit');
+    return { b, total: fit+q, why, sc: full, s };
+  }).filter(Boolean).sort((a,b)=>b.total-a.total || a.b.name.localeCompare(b.b.name)).slice(0,5);
+}
+
+function finish(){ A.results = matchAll(); A.step=5; renderQuiz(); window.scrollTo({top:0,behavior:'smooth'}); }
+
+function renderResults(){
+  const q = $('#quiz'), r = A.results;
+  if (!r.length){ q.innerHTML = `<h2>No brokers listed in ${STATES[A.state]} yet</h2><p class="sub">We're adding states continuously. <a href="/write-a-review.html">Know a broker there? Add them with a review.</a></p><button class="btn line" style="margin-top:14px" onclick="restart()">Start over</button>`; return; }
+  const pri = A.priorities.map(k=>TBI.PARAMS.find(x=>x[0]===k)[1].toLowerCase()).join(' and ');
+  q.innerHTML = `<h2>Your top ${r.length} match${r.length===1?'':'es'}</h2>
+    <p class="sub">Matched on ${STATES[A.state]}, ${A.industry.toLowerCase()}, ${A.size}${pri?', weighted toward '+pri:''}.</p>
+    <div class="rlist" style="margin-top:14px">${r.map((x,i)=>`<div class="rrow" style="align-items:flex-start;gap:14px">
+      <span class="rk">${i+1}</span>
+      <div style="flex:1;min-width:0"><a class="nm" href="/broker-${esc(x.b.slug)}.html">${esc(x.b.name)}</a> <span class="mt">${esc(x.b.firm)}${x.b.city&&x.b.city!=='—'?' · '+esc(x.b.city):''}</span><div class="mt" style="margin-top:3px">${x.why.map(esc).join(' · ')}</div></div>
+      <div class="sc">${x.sc?`<b>${TBI.fmt(x.sc.score)}</b><span>/10</span>`:`<span>no score yet</span>`}</div>
+      <button class="btn ${A.picked.has(x.b.id)?'navy':'line'} sm" onclick="togglePick('${x.b.id}')">${A.picked.has(x.b.id)?'Selected':'Introduce me'}</button>
+    </div>`).join('')}</div>
+    <div class="panel navy" style="margin-top:16px;display:flex;justify-content:space-between;gap:16px;align-items:center;flex-wrap:wrap">
+      <div><h3>${A.picked.size?`Introduce me to ${A.picked.size} broker${A.picked.size===1?'':'s'}`:'Want us to make the introduction?'}</h3><p class="sub">We email you and the broker together. No obligation. Your details go only to the brokers you pick.</p></div>
+      <button class="btn gold" ${A.picked.size?'':'disabled'} onclick="introForm()">Request introductions</button></div>
+    <div style="margin-top:12px;display:flex;gap:14px;align-items:center"><button class="lnk" style="color:var(--gold)" onclick="restart()">Start over</button><a class="lnk" href="/?state=${A.state}">Browse all ${STATES[A.state]} brokers</a></div>`;
+}
+function togglePick(id){ A.picked.has(id)?A.picked.delete(id):A.picked.add(id); renderResults(); }
+function restart(){ Object.assign(A,{step:1,state:'',industry:'',size:'',timeline:'',priorities:[],picked:new Set(),results:[]}); renderQuiz(); }
+
+function introForm(){
+  const names = [...A.picked].map(id=>TBI.brokers.find(b=>b.id===id).name);
+  TBI.modal(`<div class="mhead"><h3>Request introductions</h3><button class="x" onclick="TBI.closeModal()">✕</button></div><div class="mbody">
+    <p class="hint">To: <b>${names.map(esc).join(', ')}</b></p>
+    <label class="fl" for="in-name">Your name <span class="req">*</span></label><input class="fi" id="in-name" maxlength="80" value="${esc((TBI.me&&TBI.me.username)||'')}">
+    <label class="fl" for="in-email">Email <span class="req">*</span></label><input class="fi" id="in-email" type="email" value="${esc((TBI.user&&TBI.user.email)||'')}">
+    <label class="fl" for="in-note">A line about what you're selling</label><textarea class="fi" id="in-note" maxlength="600" style="min-height:90px" placeholder="e.g. Commercial HVAC company in Denver, ~$3M revenue, looking to sell in the next 6 months."></textarea>
+    <label style="display:flex;gap:10px;align-items:flex-start;margin-top:14px;font-size:13.5px;color:var(--ink2)"><input type="checkbox" id="in-consent" style="margin-top:4px"> I agree to The Broker Index sharing my name, email and this note with the brokers I selected so they can contact me. <span class="req">*</span></label>
+    <div class="msg" id="in-msg"></div>
+    <div style="margin-top:16px"><button class="btn gold wide" id="in-btn" onclick="sendIntro()">Send my request</button></div></div>`);
+}
+async function sendIntro(){
+  const m = $('#in-msg'), name=$('#in-name').value.trim(), email=$('#in-email').value.trim();
+  if (!name||!/.+@.+\..+/.test(email)) { m.className='msg err'; m.textContent='Name and a valid email are required.'; return; }
+  if (!$('#in-consent').checked) { m.className='msg err'; m.textContent='Please confirm you’re happy for us to pass your details on.'; return; }
+  $('#in-btn').disabled = true;
+  const row = { user_id: TBI.user?TBI.user.id:null, name, email, note:$('#in-note').value.trim(), state:A.state, industry:A.industry, deal_size:A.size, timeline:A.timeline, priorities:A.priorities, broker_ids:[...A.picked], consent:true };
+  const r = await TBI.sb.from('introductions').insert(row);
+  $('#in-btn').disabled = false;
+  if (r.error){ m.className='msg err'; m.textContent=r.error.message; return; }
+  TBI.closeModal(); TBI.toast('Request received — we’ll email the introduction within one business day.');
+  try{ gtag('event','intro_request',{brokers:A.picked.size}); }catch(e){}
+}
+
+(async()=>{ await TBI.ready; try{ await TBI.load(); }catch(e){ $('#quiz').innerHTML='<div class="empty">Could not load the directory. Please refresh.</div>'; return; } renderQuiz(); })();
+</script>
+</body>
+</html>

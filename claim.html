@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Brokers: Claim Your Profile | The Broker Index</title>
+<meta name="description" content="Are you a business broker listed on The Broker Index? Claim your profile to verify your details, add your bio and contact links, respond to reviews, and receive a monthly report of how clients rate you. Free. Reviews and scores stay independent.">
+<link rel="canonical" href="https://ratemybusinessbroker.com/claim.html">
+<link rel="icon" href="/favicon.ico" sizes="48x48"><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta property="og:title" content="Brokers: claim your profile"><meta property="og:description" content="Verify your details, get a monthly client-feedback report. Free. Reviews stay independent."><meta property="og:url" content="https://ratemybusinessbroker.com/claim.html"><meta property="og:image" content="https://ratemybusinessbroker.com/og-image.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,650&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/_shared.css">
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-KTQ1BWRBJC"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-KTQ1BWRBJC');</script>
+</head>
+<body data-nav="claim">
+<div id="site-header"></div>
+<main class="wrap app" style="max-width:760px">
+  <div class="pagehead"><div class="eyebrow">For brokers</div><h1>Claim your profile</h1>
+    <p class="lead">Claiming is free. It lets you confirm your contact details and specialties, shows a Verified mark on your page, and gets you a monthly email of how clients rate you, with trends. It never lets you edit, remove or reorder reviews — that's what makes the mark worth having.</p></div>
+
+  <div class="cols3 section">
+    <div class="panel"><b>You can</b><p class="sub">Correct name, firm, location, website, LinkedIn, phone and specialties. Add a bio. Post up to five active listings.</p></div>
+    <div class="panel"><b>You can't</b><p class="sub">Change, hide or reorder reviews or scores. Your rating is computed the same way for everyone.</p></div>
+    <div class="panel"><b>You get</b><p class="sub">A Verified mark, priority in quiz matches when scores tie, and a monthly feedback report by email.</p></div>
+  </div>
+
+  <div class="panel section" id="form">
+    <h2 style="font-size:20px">Find your listing</h2>
+    <div class="combo" style="margin-top:10px"><input class="fi" id="bq" autocomplete="off" placeholder="Your name or firm" oninput="q=this.value;dd()" onfocus="dd()"><div class="dd" id="dd" hidden></div></div>
+    <div id="picked"></div>
+    <div id="claimform" hidden>
+      <label class="fl" for="c-email">Work email at your firm <span class="req">*</span></label><input class="fi" id="c-email" type="email" placeholder="you@yourfirm.com">
+      <div class="hint">Fastest path: an email at the firm's own domain. Personal addresses are accepted but need another check.</div>
+      <label class="fl" for="c-method">How should we verify you?</label>
+      <select class="fi" id="c-method"><option value="email">Email at my firm's domain (automatic)</option><option value="linkedin">Message from my LinkedIn profile</option><option value="phone">Call the number on my firm's website</option><option value="other">Other — I'll explain below</option></select>
+      <label class="fl" for="c-ev">Anything that helps us confirm it's you</label><textarea class="fi" id="c-ev" maxlength="500" style="min-height:80px" placeholder="LinkedIn URL, firm bio page, license number…"></textarea>
+      <div class="msg" id="msg"></div>
+      <div style="margin-top:16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap"><button class="btn gold" id="btn" onclick="submitClaim()">Submit claim</button><span class="hint">Reviewed by a person, usually within two business days.</span></div>
+    </div>
+    <p class="hint" style="margin-top:14px">Not listed at all? <a href="/write-a-review.html">Ask a past client to add you with a review</a>, or <a href="mailto:hello@ratemybusinessbroker.com?subject=Please%20list%20me">email us your details</a>. Listing is always free.</p>
+  </div>
+</main>
+<div id="site-footer"></div>
+<div id="modals"></div><div class="toast" id="toast"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="/_shell.js"></script>
+<script src="/_app.js"></script>
+<script>
+const $=TBI.$, esc=TBI.esc; let q='', bid=null;
+function dd(){ const box=$('#dd'), s=q.trim().toLowerCase(); const hits=s?TBI.brokers.filter(b=>(b.name+' '+b.firm).toLowerCase().includes(s)).slice(0,8):[]; box.innerHTML=hits.length?hits.map(b=>`<button type="button" onclick="pick('${b.id}')"><span><b>${esc(b.name)}</b> · ${esc(b.firm)}${b.claimed_by?' <span class="vpill">✓ claimed</span>':''}</span><span style="color:var(--mut)">${esc(b.city!=='—'?b.city+', ':'')}${esc(b.state)}</span></button>`).join(''):`<div class="none">${s?'No match':'Type to search'}</div>`; box.hidden=false; }
+document.addEventListener('click',e=>{ if(!e.target.closest('.combo')) $('#dd').hidden=true; });
+function pick(id){ const b=TBI.brokers.find(x=>x.id===id); bid=id; $('#bq').value=b.name; $('#dd').hidden=true; $('#picked').innerHTML=b.claimed_by?`<div class="notice" style="margin-top:10px"><span>This profile is already claimed. If that's wrong, <a href="mailto:hello@ratemybusinessbroker.com?subject=Claim%20dispute">email us</a>.</span></div>`:`<div class="hint" style="margin-top:8px">Claiming <b>${esc(b.name)}</b> · ${esc(b.firm)} · <a href="/broker-${esc(b.slug)}.html" target="_blank">view page</a></div>`; $('#claimform').hidden=!!b.claimed_by; }
+async function submitClaim(){
+  const m=$('#msg'); if(!TBI.user) return TBI.openAuth('Sign in to claim your profile');
+  const email=$('#c-email').value.trim(); if(!bid){m.className='msg err';m.textContent='Pick your listing first.';return;} if(!/.+@.+\..+/.test(email)){m.className='msg err';m.textContent='Enter a valid work email.';return;}
+  $('#btn').disabled=true;
+  const r=await TBI.sb.from('broker_claims').insert({broker_id:bid,user_id:TBI.user.id,work_email:email,method:$('#c-method').value,evidence:$('#c-ev').value.trim()});
+  $('#btn').disabled=false;
+  if(r.error){m.className='msg err';m.textContent=/unique|duplicate/i.test(r.error.message)?'You already have a claim on this profile — we’ll be in touch.':r.error.message;return;}
+  m.className='msg ok'; m.textContent='Claim received. We’ll verify and email you — usually within two business days.'; try{gtag('event','claim_submit');}catch(e){}
+}
+(async()=>{ await TBI.ready; await TBI.load(); const s=TBI.qs('broker'); if(s){const b=TBI.brokers.find(x=>x.slug===s); if(b) pick(b.id);} })();
+</script>
+</body>
+</html>

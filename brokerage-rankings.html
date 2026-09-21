@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Best Business Brokerages — Ranked by Client Reviews | The Broker Index</title>
+<meta name="description" content="Business brokerage firms ranked by independent client reviews: firm score, consistency across agents, and review coverage. Filter by state to find the best-rated brokerages near you, and see how each firm's agents compare.">
+<link rel="canonical" href="https://ratemybusinessbroker.com/brokerage-rankings.html">
+<link rel="icon" href="/favicon.ico" sizes="48x48"><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta property="og:title" content="Best business brokerages, ranked by client reviews"><meta property="og:description" content="Firm score, consistency across agents, review coverage. Filter by state."><meta property="og:url" content="https://ratemybusinessbroker.com/brokerage-rankings.html"><meta property="og:image" content="https://ratemybusinessbroker.com/og-image.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,650&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/_shared.css">
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-KTQ1BWRBJC"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-KTQ1BWRBJC');</script>
+</head>
+<body data-nav="rankings">
+<div id="site-header"></div>
+<main class="wrap app">
+  <div class="pagehead" style="display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap">
+    <div style="max-width:720px">
+      <h1 id="h1">Best business brokerages</h1>
+      <p class="lead">Ranked on firm score (70%), consistency across agents (20%) and review coverage (10%). A firm needs <span id="minfirm"></span> reviews across at least <span id="minag"></span> scored agents to be ranked. <a href="/methodology.html">Full methodology</a></p>
+    </div>
+    <select class="sel" id="f-state" onchange="S.state=this.value;paint()"><option value="">All states</option></select>
+  </div>
+  <div id="out" class="section" style="margin-top:14px"><div class="skel"></div></div>
+  <div class="cols3 section">
+    <div class="panel"><b>Firm score</b><p class="sub">Volume-weighted average of every scored agent's composite, out of 10.</p></div>
+    <div class="panel"><b>Consistency</b><p class="sub">How close the firm's best and worst agents are. You get assigned an agent, not an average.</p></div>
+    <div class="panel"><b>Coverage</b><p class="sub">Share of the firm's agents with enough reviews to be scored. Stops two rainmakers carrying fifteen unknowns.</p></div>
+  </div>
+</main>
+<div id="site-footer"></div>
+<div id="modals"></div><div class="toast" id="toast"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="/_shell.js"></script>
+<script src="/_app.js"></script>
+<script>
+const $ = TBI.$, esc = TBI.esc;
+const S = { state: TBI.qs('state') || '', firm: TBI.qs('firm') || '' };
+const STATES = {AL:'Alabama',AK:'Alaska',AZ:'Arizona',AR:'Arkansas',CA:'California',CO:'Colorado',CT:'Connecticut',DE:'Delaware',DC:'Washington, D.C.',FL:'Florida',GA:'Georgia',HI:'Hawaii',ID:'Idaho',IL:'Illinois',IN:'Indiana',IA:'Iowa',KS:'Kansas',KY:'Kentucky',LA:'Louisiana',ME:'Maine',MD:'Maryland',MA:'Massachusetts',MI:'Michigan',MN:'Minnesota',MS:'Mississippi',MO:'Missouri',MT:'Montana',NE:'Nebraska',NV:'Nevada',NH:'New Hampshire',NJ:'New Jersey',NM:'New Mexico',NY:'New York',NC:'North Carolina',ND:'North Dakota',OH:'Ohio',OK:'Oklahoma',OR:'Oregon',PA:'Pennsylvania',RI:'Rhode Island',SC:'South Carolina',SD:'South Dakota',TN:'Tennessee',TX:'Texas',UT:'Utah',VT:'Vermont',VA:'Virginia',WA:'Washington',WV:'West Virginia',WI:'Wisconsin',WY:'Wyoming'};
+const trend = t => t==null ? '<span class="trend flat">—</span>' : Math.abs(t)<0.15 ? '<span class="trend flat">0.0</span>' : `<span class="trend ${t>0?'up':'down'}">${t>0?'+':'−'}${Math.abs(t).toFixed(1)}</span>`;
+
+function paint(){
+  const all = TBI.firms().filter(f=>!S.state || f.states.includes(S.state));
+  $('#h1').textContent = 'Best business brokerages' + (S.state?' in '+STATES[S.state]:'');
+  document.title = $('#h1').textContent + ' — Ranked by Client Reviews | The Broker Index';
+  if (S.firm) return firmReport(all.find(f=>f.firm===S.firm));
+  const ranked = all.filter(f=>f.eligible).sort((a,b)=>b.composite-a.composite);
+  const unranked = all.filter(f=>!f.eligible && f.reviews>0).length;
+  $('#out').innerHTML = ranked.length ? `<table class="rtable"><thead><tr><th>Rank</th><th>Brokerage</th><th class="r">Firm score</th><th class="hide-m">Consistency</th><th class="r hide-m">Agents scored</th><th class="r hide-m">Reviews</th><th class="r">Trend</th></tr></thead><tbody>
+    ${ranked.map((f,i)=>`<tr class="lnk" onclick="location.search='?firm='+encodeURIComponent('${esc(f.firm).replace(/'/g,"\\'")}')${S.state?"+'&state='+'"+S.state+"'":''}">
+      <td class="rk">${i+1}</td><td><b>${esc(f.firm)}</b><div class="hint">${f.states.slice(0,4).map(s=>STATES[s]||s).join(', ')} · ${f.agents.length} agent${f.agents.length===1?'':'s'}</div></td>
+      <td class="num">${TBI.fmt(f.mean)}</td>
+      <td class="hide-m"><div class="cons"><i><b style="width:${Math.round(f.consistency*100)}%"></b></i><span class="hint">${f.consistency>0.8?'Tight':f.consistency>0.55?'Moderate':'Wide'}</span></div></td>
+      <td class="r hide-m">${f.scored.length} of ${f.agents.length}</td><td class="r hide-m">${f.reviews}</td><td class="r">${trend(f.trend)}</td></tr>`).join('')}
+    </tbody></table>
+    <div class="hint" style="margin-top:10px">${unranked?unranked+' more firm'+(unranked===1?'':'s')+' have reviews but do not yet meet the minimum. ':''}<a href="/write-a-review.html">Reviewed one of them? Add your review.</a></div>`
+  : `<div class="panel" style="text-align:center;padding:40px"><h2>Not enough reviews to rank firms${S.state?' in '+STATES[S.state]:''} yet</h2><p class="sub" style="margin-top:8px">${all.filter(f=>f.reviews>0).length} firm${all.filter(f=>f.reviews>0).length===1?' has':'s have'} reviews so far. A ranking built on thin data isn't worth publishing — the table appears once firms clear ${TBI.MIN.firm} reviews across ${TBI.MIN.firmAgents}+ agents.</p><a class="btn gold" style="margin-top:16px" href="/write-a-review.html">Write a review</a></div>`;
+}
+
+/* firm report — the web version of the brokerage performance report */
+function firmReport(f){
+  if (!f){ $('#out').innerHTML='<div class="empty">Firm not found.</div>'; return; }
+  const agents = f.agents.map(b=>({b, s:TBI.scores[b.id], shown:TBI.shown(TBI.scores[b.id])})).sort((a,c)=>((c.shown&&c.shown.score)||-1)-((a.shown&&a.shown.score)||-1));
+  const P = TBI.PARAMS;
+  const firmParam = k => { let w=0,s=0; f.scored.forEach(x=>{ if(x.s.params[k]){ w+=x.s.W; s+=x.s.params[k]*x.s.W; } }); return w?s/w:null; };
+  const weakest = P.map(p=>({l:p[1],v:firmParam(p[0])})).filter(x=>x.v!=null).sort((a,b)=>a.v-b.v)[0];
+  const sideOf = (x,side)=>{ const s=TBI.shownSide(x.s,side); return s?TBI.fmt(s.score):'—'; };
+  $('#out').innerHTML = `<a class="lnk hint" href="/brokerage-rankings.html${S.state?'?state='+S.state:''}">← All brokerages</a>
+    <div class="panel navy" style="margin-top:10px;display:flex;gap:28px;flex-wrap:wrap;align-items:flex-end"><div style="flex:1;min-width:220px"><div class="hint" style="color:rgba(242,237,226,.65)">Brokerage report</div><h2 style="font-size:28px">${esc(f.firm)}</h2><p class="sub">${f.agents.length} agents · ${f.reviews} reviews · ${f.states.map(s=>STATES[s]||s).join(', ')}</p></div>
+      ${f.eligible?`<div class="scorebox"><div class="lab">Firm score</div><div class="big">${TBI.fmt(f.mean)}<small>/10</small></div></div><div class="scorebox"><div class="lab">Consistency</div><div class="big">${Math.round(f.consistency*100)}<small>%</small></div><div class="n">${f.spread.toFixed(1)} pts best to worst</div></div><div class="scorebox"><div class="lab">Coverage</div><div class="big">${Math.round(f.coverage*100)}<small>%</small></div><div class="n">${f.scored.length} of ${f.agents.length} scored</div></div>`:'<div class="hint" style="color:rgba(242,237,226,.75)">Not yet ranked — needs '+TBI.MIN.firm+' reviews across '+TBI.MIN.firmAgents+'+ agents.</div>'}</div>
+    ${weakest?`<div class="notice" style="margin-top:14px"><span><b>Where training would move the most:</b> ${weakest.l.toLowerCase()} is the firm's lowest parameter at ${TBI.fmt(weakest.v)}.</span></div>`:''}
+    <div class="panel section"><h2 style="font-size:20px">Agents</h2><p class="sub">Every agent, six parameters each. Agents under ${TBI.MIN.score} reviews are listed but not scored.</p>
+    <div style="overflow:auto;margin-top:12px"><table class="rtable"><thead><tr><th>Agent</th><th class="r">Score</th><th class="r hide-m">Sellers</th><th class="r hide-m">Buyers</th>${P.map(p=>`<th class="r hide-m" title="${p[1]}">${p[1].split(' ')[0]}</th>`).join('')}<th class="r">Reviews</th></tr></thead><tbody>
+      ${agents.map(x=>`<tr class="lnk" onclick="location.href='/broker-${esc(x.b.slug)}.html'"><td><b>${esc(x.b.name)}</b><div class="hint">${esc(x.b.city!=='—'?x.b.city+', ':'')}${esc(x.b.state)}</div></td>
+        <td class="num">${x.shown?TBI.fmt(x.shown.score):'<span class="hint">—</span>'}</td><td class="r hide-m">${x.shown?sideOf(x,'seller'):'—'}</td><td class="r hide-m">${x.shown?sideOf(x,'buyer'):'—'}</td>
+        ${P.map(p=>`<td class="r hide-m">${x.shown&&x.shown.params[p[0]]?TBI.fmt(x.shown.params[p[0]]):'—'}</td>`).join('')}<td class="r">${(x.s&&x.s.count)||0}</td></tr>`).join('')}
+    </tbody></table></div>
+    <p class="hint" style="margin-top:10px">This report measures reviewed client experience, not deal outcomes. Scores exclude removed and flagged reviews. Brokerages can <a href="/claim.html">claim their agents' pages</a> to receive this monthly by email with trends.</p></div>`;
+}
+
+(async()=>{
+  $('#minfirm').textContent=TBI.MIN.firm; $('#minag').textContent=TBI.MIN.firmAgents;
+  await TBI.ready; await TBI.load();
+  const states=[...new Set(TBI.brokers.map(b=>b.state).filter(s=>STATES[s]))].sort((a,b)=>STATES[a].localeCompare(STATES[b]));
+  $('#f-state').innerHTML='<option value="">All states</option>'+states.map(s=>`<option value="${s}" ${S.state===s?'selected':''}>${STATES[s]}</option>`).join('');
+  paint();
+})();
+</script>
+</body>
+</html>

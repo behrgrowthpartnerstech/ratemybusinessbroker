@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin | The Broker Index</title>
+<meta name="robots" content="noindex,nofollow">
+<link rel="icon" href="/favicon.ico" sizes="48x48"><link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,650&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/_shared.css">
+</head>
+<body data-nav="admin">
+<div id="site-header"></div>
+<main class="wrap app">
+  <div class="pagehead"><h1>Admin</h1><p class="sub">Only your account can see this — enforced by the database, not by this page.</p></div>
+  <div class="tabs" id="tabs">
+    <button class="on" data-t="pending" onclick="tab('pending')">Pending reviews</button>
+    <button data-t="requests" onclick="tab('requests')">Broker requests</button>
+    <button data-t="claims" onclick="tab('claims')">Claims</button>
+    <button data-t="verif" onclick="tab('verif')">Verification</button>
+    <button data-t="intros" onclick="tab('intros')">Introductions</button>
+    <button data-t="reports" onclick="tab('reports')">Reports</button>
+  </div>
+  <div id="out"><div class="skel"></div></div>
+</main>
+<div id="site-footer"></div>
+<div id="modals"></div><div class="toast" id="toast"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="/_shell.js"></script>
+<script src="/_app.js"></script>
+<script>
+const $=TBI.$, esc=TBI.esc, sb=TBI.sb; let cur='pending';
+const who = id => (TBI.profilesById[id]||{}).username || 'member';
+const bname = id => (TBI.brokers.find(b=>b.id===id)||{name:'?'}).name;
+function tab(t){ cur=t; document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===t)); load(); }
+async function load(){
+  $('#out').innerHTML='<div class="skel"></div>';
+  if (cur==='pending'){
+    const r=await sb.from('reviews').select('*, listing_requests(id,name,firm,location,city,state,status,broker_id)').eq('status','pending').order('created_at');
+    const rows=r.data||[];
+    $('#out').innerHTML = rows.length? rows.map(v=>{ const req=v.listing_requests; return `<div class="rev"><div class="rtop"><span class="who">${req?'NEW BROKER: '+esc(req.name)+' · '+esc(req.firm||'')+' · '+esc(req.location||''):esc(bname(v.broker_id))}</span><span class="sidetag ${v.side==='seller'?'sell':'buy'}">${v.side}</span><span class="hint">by ${esc(who(v.author_id))}</span><time>${new Date(v.created_at).toLocaleDateString()}</time></div>
+      ${v.mod_note?`<div class="notice" style="margin:8px 0"><span><b>Held:</b> ${esc(v.mod_note)}</span></div>`:''}
+      <div class="rtxt">${esc(v.text)}</div><div class="rctx">${esc([v.stage,v.industry,v.deal_size].join(' · '))} · ratings ${esc(JSON.stringify(v.ratings))}</div>
+      <div class="ract" style="gap:8px;flex-wrap:wrap">
+        ${req && !req.broker_id ? `<button class="btn navy sm" onclick="approveReq('${req.id}')">Create broker &amp; publish</button><button class="btn line sm" onclick="linkExisting('${v.id}')">Link to existing broker…</button>` : `<button class="btn navy sm" onclick="publish('${v.id}')">Publish</button>`}
+        <button class="btn danger sm" onclick="reject('${v.id}')">Reject</button></div></div>`; }).join('') : '<p class="hint">Nothing pending.</p>';
+  }
+  if (cur==='requests'){
+    const r=await sb.from('listing_requests').select('*').eq('status','open').order('created_at');
+    $('#out').innerHTML=(r.data||[]).length?r.data.map(x=>`<div class="rev"><div class="rtop"><span class="who">${esc(x.name)}</span><span class="hint">${esc([x.firm,x.location,x.info].filter(Boolean).join(' · '))}</span><time>${new Date(x.created_at).toLocaleDateString()}</time></div><div class="ract" style="gap:8px"><button class="btn navy sm" onclick="approveReq('${x.id}')">Create broker</button><button class="btn danger sm" onclick="dismissReq('${x.id}')">Dismiss</button></div></div>`).join(''):'<p class="hint">No open requests.</p>';
+  }
+  if (cur==='claims'){
+    const r=await sb.from('broker_claims').select('*').eq('status','pending').order('created_at');
+    $('#out').innerHTML=(r.data||[]).length?r.data.map(c=>`<div class="rev"><div class="rtop"><span class="who">${esc(bname(c.broker_id))}</span><span class="hint">${esc(who(c.user_id))} · ${esc(c.work_email)} · via ${esc(c.method)}</span><time>${new Date(c.created_at).toLocaleDateString()}</time></div>${c.evidence?`<div class="rctx">${esc(c.evidence)}</div>`:''}<div class="ract" style="gap:8px"><button class="btn navy sm" onclick="claim('${c.id}','approved')">Approve</button><button class="btn danger sm" onclick="claim('${c.id}','rejected')">Reject</button></div></div>`).join(''):'<p class="hint">No pending claims.</p>';
+  }
+  if (cur==='verif'){
+    const r=await sb.from('verification_requests').select('*').eq('status','pending').order('created_at');
+    $('#out').innerHTML=(r.data||[]).length?r.data.map(v=>`<div class="rev"><div class="rtop"><span class="who">${esc(who(v.user_id))}</span><time>${new Date(v.created_at).toLocaleDateString()}</time></div><div class="rctx">${esc(v.note||v.kind)}</div><div class="ract" style="gap:8px"><button class="btn navy sm" onclick="verify('${v.id}','${v.user_id}',true)">Grant Verified</button><button class="btn danger sm" onclick="verify('${v.id}','${v.user_id}',false)">Reject</button></div></div>`).join(''):'<p class="hint">No pending verification requests.</p>';
+  }
+  if (cur==='intros'){
+    const r=await sb.from('introductions').select('*').eq('status','new').order('created_at');
+    $('#out').innerHTML=(r.data||[]).length?r.data.map(i=>`<div class="rev"><div class="rtop"><span class="who">${esc(i.name)}</span><span class="hint">${esc(i.email)} · ${esc([i.state,i.industry,i.deal_size,i.timeline].filter(Boolean).join(' · '))}</span><time>${new Date(i.created_at).toLocaleDateString()}</time></div><div class="rctx">To: ${i.broker_ids.map(b=>esc(bname(b))).join(', ')}${i.priorities.length?' · cares about '+esc(i.priorities.join(', ')):''}</div>${i.note?`<div class="rtxt">${esc(i.note)}</div>`:''}<div class="ract" style="gap:8px"><a class="btn navy sm" href="mailto:${esc(i.email)}?subject=${encodeURIComponent('Introduction: '+i.broker_ids.map(bname).join(', '))}">Draft intro email</a><button class="btn line sm" onclick="intro('${i.id}','sent')">Mark sent</button><button class="btn danger sm" onclick="intro('${i.id}','declined')">Decline</button></div></div>`).join(''):'<p class="hint">No new introduction requests.</p>';
+  }
+  if (cur==='reports'){
+    const r=await sb.from('reports').select('*').eq('status','open').order('created_at');
+    $('#out').innerHTML=(r.data||[]).length?r.data.map(x=>{ const rv=TBI.reviews.find(v=>v.id===x.review_id); return `<div class="rev"><div class="rtop"><span class="who">${esc(x.reason)}</span><span class="hint">by ${esc(who(x.reporter_id))}</span><time>${new Date(x.created_at).toLocaleDateString()}</time></div>${rv?`<div class="rtxt">${esc(rv.text)}</div><div class="rctx">on ${esc(bname(rv.broker_id))}</div>`:'<div class="rctx">(review no longer visible)</div>'}<div class="ract" style="gap:8px"><button class="btn danger sm" onclick="removeRev('${x.review_id}','${x.id}')">Remove review</button><button class="btn line sm" onclick="report('${x.id}','dismissed')">Dismiss report</button></div></div>`; }).join(''):'<p class="hint">No open reports.</p>';
+  }
+}
+async function approveReq(id){ const slug=prompt('Slug for the new broker page (leave blank to auto-generate):','')||null; const r=await sb.rpc('admin_approve_listing_request',{req:id,p_slug:slug}); if(r.error) return TBI.toast(r.error.message); TBI.toast('Broker created, waiting reviews published. Regenerate pages (GitHub Action) to get the static profile page.'); await TBI.load({force:true}); load(); }
+async function linkExisting(rid){ const s=prompt('Slug of the existing broker to attach this review to:'); if(!s) return; const b=TBI.brokers.find(x=>x.slug===s.trim()); if(!b) return TBI.toast('No broker with that slug'); const r=await sb.rpc('admin_publish_pending_review',{rid,bid:b.id}); if(r.error) return TBI.toast(r.error.message); TBI.toast('Published on '+b.name); load(); }
+async function publish(rid){ const v=(await sb.from('reviews').select('broker_id').eq('id',rid).single()).data; const r=await sb.rpc('admin_publish_pending_review',{rid,bid:v.broker_id}); if(r.error) return TBI.toast(r.error.message); TBI.toast('Published'); load(); }
+async function reject(rid){ const note=prompt('Reason (the reviewer sees this):'); if(note===null) return; const r=await sb.from('reviews').update({status:'rejected',mod_note:note.slice(0,500)}).eq('id',rid); if(r.error) return TBI.toast(r.error.message); TBI.toast('Rejected'); load(); }
+async function dismissReq(id){ await sb.from('listing_requests').update({status:'dismissed'}).eq('id',id); load(); }
+async function claim(id,status){ if(status==='approved'&&!confirm('Approve? This person becomes the verified owner of the page.')) return; const r=await sb.from('broker_claims').update({status}).eq('id',id); if(r.error) return TBI.toast(r.error.message); TBI.toast('Claim '+status); load(); }
+async function verify(id,uid,ok){ if(ok){ const e=await sb.from('profiles').update({tier:'verified'}).eq('id',uid); if(e.error) return TBI.toast(e.error.message);} await sb.from('verification_requests').update({status:ok?'approved':'rejected'}).eq('id',id); TBI.toast(ok?'Verified granted':'Rejected'); load(); }
+async function intro(id,status){ await sb.from('introductions').update({status}).eq('id',id); load(); }
+async function removeRev(rid,repid){ if(!confirm('Remove this review?')) return; await sb.from('reviews').update({status:'removed'}).eq('id',rid); await sb.from('reports').update({status:'removed'}).eq('id',repid); TBI.toast('Removed'); await TBI.load({force:true}); load(); }
+async function report(id,status){ await sb.from('reports').update({status}).eq('id',id); load(); }
+(async()=>{ await TBI.ready; if(!TBI.me||!TBI.me.is_admin){ $('#out').innerHTML='<div class="empty">Admins only.</div>'; document.getElementById('tabs').hidden=true; return; } await TBI.load(); load(); })();
+</script>
+</body>
+</html>

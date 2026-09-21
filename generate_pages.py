@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 """
-The Broker Index — page generator.
+The Broker Index — page generator (Sept 2026 UX round).
 Generates: broker-<slug>.html (one per broker), business-brokers-in-<state>.html,
 business-brokers-by-state.html, and sitemap.xml. All files land flat in the repo root.
 
 Run locally:            python3 generate_pages.py --local brokers.json
 Run in GitHub Actions:  python3 generate_pages.py --from-supabase
-(the Action fetches the live broker list from Supabase, so newly added brokers
-get pages automatically with zero manual work)
+
+Every generated page uses the shared shell (_shell.js renders the nav/footer,
+_app.js renders the live score block) so nav changes never require regenerating.
 """
 import json, html, collections, sys, os, re, datetime, urllib.request
 
@@ -35,7 +36,7 @@ def state_slug(name): return name.lower().replace(', d.c.','-dc').replace(' ','-
 def load_brokers():
     if '--from-supabase' in sys.argv:
         req = urllib.request.Request(
-            SUPABASE_URL + '/rest/v1/brokers?select=slug,name,firm,city,state,specialty,photo,website,linkedin,logo,phone&order=name&limit=5000',
+            SUPABASE_URL + '/rest/v1/brokers?select=slug,name,firm,city,state,specialty,photo,website,linkedin,logo,phone,claimed_by&order=name&limit=5000',
             headers={'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY})
         rows = json.load(urllib.request.urlopen(req, timeout=60))
     else:
@@ -43,13 +44,13 @@ def load_brokers():
         rows = json.load(open(src))
     clean = []
     for b in rows:
-        b = {k: (b.get(k) or '').strip() for k in ('slug','name','firm','city','state','specialty','photo','website','linkedin','logo','phone')}
+        b = {k: (str(b.get(k) or '')).strip() for k in ('slug','name','firm','city','state','specialty','photo','website','linkedin','logo','phone','claimed_by')}
         if b['slug'] and b['name'] and re.fullmatch(r'[a-z0-9\-]+', b['slug']):
             clean.append(b)
     return clean
 
 # ---------------------------------------------------------------- shared shell
-def head(title, desc, fname, jsonld='', ogimg=None, extra_css=''):
+def head(title, desc, fname, jsonld='', ogimg=None, extra_css='', nav=''):
     return f'''<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -58,78 +59,37 @@ def head(title, desc, fname, jsonld='', ogimg=None, extra_css=''):
 <title>{esc(title)}</title>
 <meta name="description" content="{esc(desc)}">
 <link rel="canonical" href="{SITE}/{fname}">
-<link rel="icon" type="image/png" href="/favicon.png">
+<link rel="icon" href="/favicon.ico" sizes="48x48">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="The Broker Index">
 <meta property="og:title" content="{esc(title)}">
 <meta property="og:description" content="{esc(desc)}">
 <meta property="og:url" content="{SITE}/{fname}">
-<meta property="og:image" content="{esc(ogimg) if ogimg else SITE + '/favicon.png'}">
+<meta property="og:image" content="{esc(ogimg) if ogimg else SITE + '/og-image.png'}">
+<meta name="twitter:card" content="summary_large_image">
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-KTQ1BWRBJC"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){{dataLayer.push(arguments);}}gtag('js',new Date());gtag('config','G-KTQ1BWRBJC');</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,650&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/_shared.css">
-<style>{extra_css}</style>
+{('<style>' + extra_css + '</style>') if extra_css else ''}
 {jsonld}
 </head>
-<body>
-
-<header>
-  <div class="wrap hbar">
-    <a class="brand" href="/"><span class="mark">B</span><b>The Broker Index</b></a>
-    <span class="hspace"></span>
-    <a class="hbtn" href="/articles.html">Articles</a>
-    <a class="hbtn solid" href="/">Browse brokers</a>
-  </div>
-</header>
+<body{(' data-nav="' + nav + '"') if nav else ''}>
+<div id="site-header"></div>
 '''
 
 FOOT = '''
-<footer>
-  <div class="wrap">
-    <p><a href="/">The Broker Index</a> · <a href="/business-brokers-by-state.html">Brokers by state</a> · <a href="/business-valuation-calculator.html">Valuation calculator</a> · <a href="/methodology.html">Methodology</a> — Independent ratings and reviews of M&amp;A business brokers. Listing details compiled from publicly available directory information; corrections welcome via the request form on the home page.</p>
-  </div>
-</footer>
+<div id="site-footer"></div>
+<div id="modals"></div><div class="toast" id="toast"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="/_shell.js"></script>
+<script src="/_app.js"></script>
 </body>
 </html>
-'''
-
-GRID_CSS = '''
-.bgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:16px;margin:24px 0 10px}
-.bcard{background:var(--card);border:1px solid var(--line2);border-radius:14px;padding:16px;box-shadow:0 1px 2px rgba(16,28,44,.05)}
-.bcard .top{display:flex;gap:12px;align-items:center}
-.bcard img.face{width:52px;height:52px;border-radius:50%;object-fit:cover;border:1px solid var(--line2);flex:none;background:#eee}
-.bcard .nm{font-weight:700;font-size:15.5px;line-height:1.3;color:var(--ink)}
-.bcard .nm a{color:var(--ink)}
-.bcard .fm{font-size:12.5px;color:var(--mut);margin-top:2px;line-height:1.35}
-.bcard .meta{font-size:12.5px;color:var(--ink2);margin-top:10px;line-height:1.5}
-.bcard .lnks{margin-top:10px;font-size:12.5px;display:flex;flex-wrap:wrap;gap:6px 14px}
-.stgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px;margin:24px 0}
-.stgrid a{display:flex;justify-content:space-between;background:var(--card);border:1px solid var(--line2);border-radius:11px;padding:11px 14px;color:var(--ink);font-weight:600;font-size:14px}
-.stgrid a:hover{text-decoration:none;border-color:var(--gold2)}
-.stgrid span{color:var(--mut);font-weight:400}
-.wide{max-width:1060px;margin:0 auto;padding:34px 20px 40px}
-@media(max-width:600px){.wide{padding:24px 14px 32px}}
-'''
-
-PROFILE_CSS = '''
-.phero{display:flex;gap:20px;align-items:flex-start;background:var(--card);border:1px solid var(--line2);border-radius:16px;padding:24px;margin:24px 0;box-shadow:0 1px 2px rgba(16,28,44,.06),0 10px 28px -14px rgba(16,28,44,.18)}
-.phero img.face{width:96px;height:96px;border-radius:50%;object-fit:cover;border:1px solid var(--line2);flex:none;background:#eee}
-.phero .ph{width:96px;height:96px;border-radius:50%;flex:none;background:var(--navy);color:#dfa920;display:grid;place-items:center;font-family:Fraunces,Georgia,serif;font-size:34px;font-weight:650}
-.phero h1{font-size:clamp(24px,4vw,32px);margin:0}
-.phero .firm{display:flex;align-items:center;gap:8px;margin-top:6px;color:var(--ink2);font-weight:600;font-size:15px}
-.phero .firm img{max-height:26px;max-width:120px;object-fit:contain}
-.chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
-.chip{background:var(--paper);border:1px solid var(--line2);border-radius:20px;padding:3px 12px;font-size:12.5px;color:var(--ink2)}
-.chip.loc{background:#fdf8ec;border-color:#efe2bd;color:#7a5c07;font-weight:600}
-.plinks{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:14px;font-size:14px;font-weight:600}
-.live{background:var(--navy);border-radius:14px;color:#f2ede2;padding:20px 22px;margin:22px 0;font-size:15px}
-.live a{color:#dfa920}
-.live .bigscore{font-family:Fraunces,Georgia,serif;font-size:30px;font-weight:650;color:#dfa920;margin-right:4px}
-.live .mnote{font-size:12.5px;color:rgba(242,237,226,.65);margin-top:10px}
-.claim{border:1px dashed var(--gold2);background:#fffdf6;border-radius:14px;padding:18px 20px;margin:26px 0}
-.claim h3{margin:0 0 4px;font-size:16px}
-@media(max-width:600px){.phero{flex-direction:column;gap:14px}}
 '''
 
 def broker_fname(b): return f"broker-{b['slug']}.html"
@@ -150,11 +110,13 @@ def gen_broker_page(b, n_state):
     loc_long = ', '.join(loc_bits)
     spec = specialty_text(b['specialty'])
     initials = ''.join(w[0] for w in re.findall(r'[A-Za-z]+', name)[:2]).upper() or 'B'
+    first = name.split(' ')[0].strip('‘’“”\'"')
+    firm_txt = f' of {firm}' if firm and firm != 'Independent' else ''
 
-    title = f"{name} — Business Broker{' in ' + loc if loc else ''} | Reviews | The Broker Index"
-    desc = f"Independent client ratings and reviews for {name}" + (f" of {firm}" if firm and firm != 'Independent' else '') + \
-           (f", business broker in {loc_long}" if loc_long else ', business broker') + \
-           ". Six-parameter ratings: professionalism, transparency, consistency, collaboration, command of the deal, documentation."
+    title = f"{name} — Business Broker{' in ' + loc if loc else ''} | Reviews & Ratings | The Broker Index"
+    desc = (f"How sellers and buyers rate {name}{firm_txt}" + (f", business broker in {loc_long}" if loc_long else '') +
+            f". Independent reviews on professionalism, transparency, negotiation and paperwork" + (f"; focus on {spec}" if spec else '') +
+            f". Worked with {first}? Add your review.")
 
     person = {"@context":"https://schema.org","@type":"Person","name":name,"jobTitle":"Business Broker",
               "url":f"{SITE}/{fname}","description":desc}
@@ -183,68 +145,56 @@ def gen_broker_page(b, n_state):
     for s in [x.strip() for x in b['specialty'].split('|') if x.strip() and x.strip() != '—'][:4]:
         chips += f'<span class="chip">{esc(s)}</span>'
     plinks = []
-    if b['website']: plinks.append(f'<a href="{esc(b["website"])}" target="_blank" rel="noopener nofollow">🌐 Website</a>')
-    if b['linkedin']: plinks.append(f'<a href="{esc(b["linkedin"])}" target="_blank" rel="noopener nofollow">💼 LinkedIn</a>')
-    for _ph in [p.strip() for p in b['phone'].split(',') if p.strip()]:
-        plinks.append(f'<a href="tel:{esc(re.sub(r"[^0-9+]","",_ph))}">📞 {esc(_ph)}</a>')
-    rate_url = f'/?state={st}' if st_name else '/'
+    if b['website']: plinks.append(f'<a href="{esc(b["website"])}" target="_blank" rel="noopener nofollow">Website</a>')
+    if b['linkedin']: plinks.append(f'<a href="{esc(b["linkedin"])}" target="_blank" rel="noopener nofollow">LinkedIn</a>')
+    if b['phone']: plinks.append(f'<a href="tel:{esc(re.sub(r"[^0-9+]","",b["phone"]))}">{esc(b["phone"])}</a>')
+    verified = ' <span class="vpill" title="This broker has claimed and verified their profile">✓ Verified</span>' if b['claimed_by'] else ''
     state_link = (f' They are one of <a href="/business-brokers-in-{state_slug(st_name)}.html">{n_state} business brokers listed in {st_name}</a> on The Broker Index.' if st_name else '')
     spec_sent = f' Their listed focus areas include {esc(spec)}.' if spec else ''
     firm_sent = f' with {esc(firm)}' if firm and firm != 'Independent' else (' operating independently' if firm == 'Independent' else '')
-    first = esc(name.split(' ')[0].strip('‘’“”\'"'))
-
-    js_first = json.dumps(name.split(' ')[0].strip('‘’“”\'"'))
-    live_js = f'''<script>
-(async()=>{{
-  const el=document.getElementById('live-inner');
-  const KEY='{SUPABASE_KEY}', BASE='{SUPABASE_URL}/rest/v1';
-  const h={{apikey:KEY,Authorization:'Bearer '+KEY}};
-  const FIRST={js_first}, RATE='{rate_url}';
-  try{{
-    const b=await(await fetch(BASE+'/brokers?slug=eq.{b["slug"]}&select=id',{{headers:h}})).json();
-    if(!b.length){{el.textContent='This listing is not in the live directory right now.';return;}}
-    const rv=await(await fetch(BASE+'/reviews?broker_id=eq.'+b[0].id+'&select=ratings',{{headers:h}})).json();
-    const os=rv.map(r=>{{const v=Object.values(r.ratings||{{}}).map(Number).filter(x=>x>=1&&x<=5);return v.length?v.reduce((a,c)=>a+c,0)/v.length:null}}).filter(x=>x!=null);
-    if(!os.length){{el.innerHTML='<b>No reviews yet.</b> Worked with '+FIRST+'? <a href="'+RATE+'">Be the first to rate them →</a>';return;}}
-    const avg=os.reduce((a,c)=>a+c,0)/os.length;
-    el.innerHTML='<span class="bigscore">'+avg.toFixed(1)+'</span>★ raw average across '+os.length+' review'+(os.length>1?'s':'')+' · <a href="'+RATE+'">see ranking &amp; full breakdown →</a><div class="mnote">Directory rankings additionally apply verification weighting, recency decay and Bayesian shrinkage — see the <a href="/methodology.html">methodology</a>.</div>';
-  }}catch(e){{el.innerHTML='Live ratings unavailable right now — <a href="/">open the directory</a>.';}}
-}})();
-</script>'''
+    review_url = f'/write-a-review.html?broker={b["slug"]}'
+    claim_html = '' if b['claimed_by'] else (
+        '<div class="claimbox"><h3>Are you ' + esc(name) + '?</h3>'
+        '<p><a href="/claim.html?broker=' + b['slug'] + '"><b>Claim this profile</b></a> — free — to confirm your details, show a Verified mark, '
+        'and get a monthly report of how clients rate you. Claiming never changes reviews or scores. Then share this page with past clients '
+        '— all of them, not just the happy ones.</p></div>')
 
     body = f'''
-<article>
+<main class="wide app">
   <div class="crumb"><a href="/">Home</a> › <a href="/business-brokers-by-state.html">Brokers by state</a>{' › <a href="/business-brokers-in-' + state_slug(st_name) + '.html">' + esc(st_name) + '</a>' if st_name else ''} › {esc(name)}</div>
 
   <div class="phero">
     {face}
     <div style="min-width:0">
-      <h1>{esc(name)}</h1>
+      <h1>{esc(name)}{verified}</h1>
       <div class="firm">{logo}<span>{esc(firm)}</span></div>
       <div class="chips">{chips}</div>
       <div class="plinks">{''.join(plinks) if plinks else '<span style="color:var(--mut);font-weight:400">No contact details on file</span>'}</div>
     </div>
+    <div class="pacts">
+      <a class="btn gold" href="{review_url}">Write a review</a>
+      <a class="btn line" id="save-list" href="/account.html">☆ Save to My List</a>
+    </div>
   </div>
 
-  <div class="live"><div id="live-inner">Checking live ratings…</div></div>
+  <div id="live"><div class="skel"></div></div>
 
-  <h2>About this listing</h2>
-  <p>{esc(name)} is a business broker{firm_sent}{' based in ' + esc(loc_long) if loc_long else ''}.{spec_sent}{state_link} Clients who have worked with {first} can rate the experience on six parameters — professionalism, transparency, consistency, collaboration, command of the deal, and quality of documentation — under our <a href="/methodology.html">published methodology</a>. Listings are free, rankings cannot be bought, and reviews are moderated.</p>
-  <p>Choosing a broker? Price your business first with the <a href="/business-valuation-calculator.html">free valuation calculator</a>, understand <a href="/how-business-brokers-get-paid.html">how broker fees work</a>, and run any candidate past <a href="/can-i-trust-my-ma-broker.html">the 12 red flags</a> before signing an exclusive listing agreement.</p>
-
-  <div class="claim">
-    <h3>Are you {esc(name)}?</h3>
-    <p style="margin-top:6px;font-size:14px">This listing is free and was compiled from public directory information. To correct a detail, use the request form on the <a href="/">home page</a>. To build your review record, share this page with past clients — all of them, not just the happy ones. Brokers with real reviews rank above empty listings, and verified-client reviews carry roughly double weight.</p>
+  <div class="panel section">
+    <h2 style="font-size:20px">About this listing</h2>
+    <p style="margin-top:8px;font-size:15px;line-height:1.6;color:var(--ink2)">{esc(name)} is a business broker{firm_sent}{' based in ' + esc(loc_long) if loc_long else ''}.{spec_sent}{state_link} Clients who have worked with {esc(first)} rate the experience on six parameters — professionalism, transparency, consistency, collaboration, command of the deal, and quality of documentation — separately as buyers and as sellers, under our <a href="/methodology.html">published methodology</a>. Listings are free, rankings cannot be bought, and every review is screened before publication.</p>
+    <p style="margin-top:10px;font-size:14px;color:var(--ink2)">Choosing a broker? <a href="/find-my-perfect-broker.html">Get matched</a> on location, industry and what matters to you; price your business first with the <a href="/business-valuation-calculator.html">valuation calculator</a>; and run any candidate past <a href="/can-i-trust-my-ma-broker.html">the 12 red flags</a> before signing an exclusive listing.</p>
   </div>
+
+  {claim_html}
 
   <div class="cta">
-    <h4>Worked with {first}? Rate the experience</h4>
-    <p>Two minutes, six parameters, moderated for authenticity. Good or bad, your review is what makes broker quality visible to the next owner.</p>
-    <a href="{rate_url}">Rate this broker →</a>
+    <h4>Worked with {esc(first)}? Rate the experience</h4>
+    <p>Three minutes, six parameters, screened for authenticity. Good or bad, your review is what makes broker quality visible to the next owner.</p>
+    <a href="{review_url}">Write a review →</a>
   </div>
-</article>
-{live_js}'''
-    return head(title, desc, fname, jsonld, ogimg=b['photo'] or None, extra_css=PROFILE_CSS) + body + FOOT
+</main>
+<script>document.addEventListener('DOMContentLoaded',function(){{ var t=setInterval(function(){{ if(window.TBI){{ clearInterval(t); TBI.ready.then(function(){{ TBI.renderBrokerLive({json.dumps(b['slug'])}, document.getElementById('live')); }}); }} }},30); }});</script>'''
+    return head(title, desc, fname, jsonld, ogimg=b['photo'] or None) + body + FOOT
 
 # ---------------------------------------------------------------- state pages
 def broker_card(b):
@@ -257,9 +207,8 @@ def broker_card(b):
     lnks = [f'<a href="/{fname}"><b>Profile &amp; reviews →</b></a>']
     if b['website']: lnks.append(f'<a href="{esc(b["website"])}" target="_blank" rel="noopener nofollow">Website</a>')
     if b['linkedin']: lnks.append(f'<a href="{esc(b["linkedin"])}" target="_blank" rel="noopener nofollow">LinkedIn</a>')
-    if b['phone']: lnks.append(f'<span style="color:var(--mut)">{esc(b["phone"])}</span>')
     return f'''<div class="bcard">
-  <div class="top">{face}<div><div class="nm"><a href="/{fname}">{esc(b['name'])}</a></div><div class="fm">{esc(b['firm'])}</div></div></div>
+  <div class="top">{face}<div><div class="nm"><a href="/{fname}">{esc(b['name'])}</a>{' <span class="vpill">✓</span>' if b['claimed_by'] else ''}</div><div class="fm">{esc(b['firm'])}</div></div></div>
   <div class="meta">{meta}</div>
   <div class="lnks">{' '.join(lnks)}</div>
 </div>'''
@@ -276,15 +225,15 @@ def gen_state_page(st, brokers):
     city_txt = (f", with listings concentrated in {', '.join(topcities[:-1])} and {topcities[-1]}" if len(topcities) > 1
                 else (f", based in {topcities[0]}" if topcities else ''))
     firm_txt = f" National networks like {' and '.join(topfirms[:2])} are represented alongside independent firms." if topfirms else ''
-    title = f'Business Brokers in {name} ({n} Listed) — Ratings & Reviews | The Broker Index'
-    desc = f'Compare {n} M&A business {plural} in {name}: firms, specialties, contact links, and independent client ratings on transparency and deal execution.'
+    title = f'Business Brokers in {name} ({n} Listed) — Reviews & Ratings | The Broker Index'
+    desc = f'Compare {n} business {plural} in {name} by independent client reviews: how sellers and buyers rated each one, firms, specialties and contact links. Get matched to the right {name} broker for your sale.'
     itemlist = {"@context":"https://schema.org","@type":"ItemList","name":f"Business Brokers in {name}","numberOfItems":n,
         "itemListElement":[{"@type":"ListItem","position":i+1,"name":b['name'],"url":f"{SITE}/{broker_fname(b)}"} for i, b in enumerate(brokers)]}
     faq = {"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
         {"@type":"Question","name":f"How many business brokers are there in {name}?",
          "acceptedAnswer":{"@type":"Answer","text":f"The Broker Index currently lists {n} M&A business {plural} operating in {name}, compiled from public professional directory data. Each listing carries independent client ratings once reviews are submitted."}},
         {"@type":"Question","name":f"How do I check a business broker's reputation in {name}?",
-         "acceptedAnswer":{"@type":"Answer","text":"Search the broker on The Broker Index to see client ratings across six parameters (professionalism, transparency, consistency, collaboration, command of the deal, and quality of documentation), then verify their license if your state requires one, ask for references from closed deals, and check how long they've been brokering in your industry."}},
+         "acceptedAnswer":{"@type":"Answer","text":"Search the broker on The Broker Index to see client ratings across six parameters, split by whether the reviewer was a buyer or a seller, then verify their license if your state requires one, ask for references from closed deals, and check how long they've been brokering in your industry."}},
         {"@type":"Question","name":f"How much do business brokers charge in {name}?",
          "acceptedAnswer":{"@type":"Answer","text":"Fees in every state follow the same national patterns: roughly 8-12% success fees for main-street businesses under $2M (10% is most common), and tiered Double Lehman formulas on larger deals. Minimum fees of $10,000-$25,000 are common."}}]}
     jsonld = ('<script type="application/ld+json">\n' + json.dumps(itemlist, ensure_ascii=False) + '\n</script>\n'
@@ -294,13 +243,13 @@ def gen_state_page(st, brokers):
 <div class="wide">
   <div class="crumb"><a href="/">Home</a> › <a href="/business-brokers-by-state.html">Brokers by state</a> › {name}</div>
   <h1>Business Brokers in {name}</h1>
-  <p style="max-width:720px">The Broker Index lists <strong>{n} M&amp;A business {plural} in {name}</strong>{city_txt}.{firm_txt} Every broker below has a profile page and can be rated by clients on six parameters — professionalism, transparency, consistency, collaboration, command of the deal, and quality of documentation — using the <a href="/methodology.html">same published methodology</a>. Listings are free and cannot be bought; ratings come only from members.</p>
-  <p style="max-width:720px;font-size:14px">Selling in {name}? Start with our <a href="/business-valuation-calculator.html">free valuation calculator</a> to price realistically, read <a href="/how-business-brokers-get-paid.html">how broker fees work</a> before you sign, and check <a href="/can-i-trust-my-ma-broker.html">the 12 red flags</a> before granting exclusivity.</p>
+  <p style="max-width:720px">The Broker Index lists <strong>{n} M&amp;A business {plural} in {name}</strong>{city_txt}.{firm_txt} Every broker below has a profile page and is rated by clients on six parameters — separately by buyers and by sellers — using the <a href="/methodology.html">same published methodology</a>. Listings are free and cannot be bought; ratings come only from members.</p>
+  <p style="max-width:720px;font-size:14px">Selling in {name}? <a href="/find-my-perfect-broker.html">Get matched to a broker</a> in two minutes, price realistically with the <a href="/business-valuation-calculator.html">free valuation calculator</a>, and read <a href="/how-business-brokers-get-paid.html">how broker fees work</a> before you sign. See also the <a href="/brokerage-rankings.html?state={st}">best-rated brokerages in {name}</a>.</p>
 
   <div class="bgrid">
 {cards}
   </div>
-  <p style="font-size:12.5px;color:var(--mut)">Worked with one of these brokers? <a href="/?state={st}">Leave a rating</a> — it takes two minutes and helps the next seller. Broker details compiled from publicly available directory information; to correct a listing, use the request form on the <a href="/">home page</a>.</p>
+  <p style="font-size:12.5px;color:var(--mut)">Worked with one of these brokers? <a href="/write-a-review.html">Write a review</a> — it takes three minutes and helps the next seller. Broker details compiled from publicly available directory information; brokers can <a href="/claim.html">claim their profile</a> to correct a listing.</p>
 
   <h2 style="margin-top:40px">FAQ</h2>
   <h3>How many business brokers are there in {name}?</h3>
@@ -313,17 +262,17 @@ def gen_state_page(st, brokers):
   <div class="cta">
     <h4>Rate a {name} broker you've worked with</h4>
     <p>Reviews from real sellers and buyers are what make broker quality visible. Good or bad, your experience helps the next owner.</p>
-    <a href="/?state={st}">Find your broker →</a>
+    <a href="/write-a-review.html">Write a review →</a>
   </div>
 </div>
 '''
-    return fname, head(title, desc, fname, jsonld, extra_css=GRID_CSS) + body + FOOT
+    return fname, head(title, desc, fname, jsonld) + body + FOOT
 
 def gen_state_index(by_state, state_files):
     fname = 'business-brokers-by-state.html'
     total = sum(len(v) for v in by_state.values())
-    title = 'Business Brokers by State — Directory & Ratings | The Broker Index'
-    desc = f'Find and compare M&A business brokers in {len(by_state)} states: independent listings with client ratings on transparency, professionalism, and deal execution.'
+    title = 'Business Brokers by State — Directory, Reviews & Ratings | The Broker Index'
+    desc = f'Find and compare {total} M&A business brokers across {len(by_state)} states. Independent client reviews, split by buyer and seller, on transparency, professionalism and deal execution. Free to browse.'
     links = '\n'.join(f'<a href="/{state_files[st]}">{STATES[st]}<span>{len(by_state[st])}</span></a>'
                       for st in sorted(by_state, key=lambda s: STATES[s]))
     jsonld = '<script type="application/ld+json">\n' + json.dumps({
@@ -337,27 +286,36 @@ def gen_state_index(by_state, state_files):
   <div class="stgrid">
 {links}
   </div>
-  <p style="font-size:14px;color:var(--ink2);max-width:720px">Don't see your broker? Anyone can <a href="/">request a listing</a> — brokers are added from public directory information and member requests, and being listed is always free.</p>
+  <p style="font-size:14px;color:var(--ink2);max-width:720px">Don't see your broker? <a href="/write-a-review.html">Add them with a review</a> — brokers are added from public directory information and member requests, and being listed is always free.</p>
   <div class="cta">
-    <h4>Selling a business? Price it before you pick a broker</h4>
-    <p>Our free calculator turns your P&amp;L into a defensible asking range in 60 seconds — SDE, add-backs, industry multiples, and the SBA financing test.</p>
-    <a href="/business-valuation-calculator.html">Try the valuation calculator →</a>
+    <h4>Selling a business? Get matched before you pick</h4>
+    <p>Four questions — location, industry, revenue, what matters to you — and five ranked brokers with the reasons.</p>
+    <a href="/find-my-perfect-broker.html">Find my perfect broker →</a>
   </div>
 </div>
 '''
-    return fname, head(title, desc, fname, jsonld, extra_css=GRID_CSS) + body + FOOT
+    return fname, head(title, desc, fname, jsonld, nav='tools') + body + FOOT
 
 # ---------------------------------------------------------------- sitemap
 def gen_sitemap(broker_files, state_files):
-    core = [('', '1.0', 'daily'), ('articles.html', '0.8', 'daily'),
+    core = [('', '1.0', 'daily'),
+            ('find-my-perfect-broker.html', '0.9', 'weekly'),
+            ('write-a-review.html', '0.8', 'monthly'),
+            ('brokerage-rankings.html', '0.8', 'weekly'),
+            ('tools.html', '0.8', 'monthly'),
+            ('prospective-sellers.html', '0.8', 'monthly'),
+            ('prospective-buyers.html', '0.8', 'monthly'),
+            ('articles.html', '0.8', 'daily'),
             ('business-valuation-calculator.html', '0.8', None),
             ('business-brokers-by-state.html', '0.8', 'weekly'),
-            ('about.html', '0.6', None), ('methodology.html', '0.6', None)]
-    skip = {'index.html', 'articles.html', 'about.html', 'methodology.html',
-            'business-valuation-calculator.html', 'business-brokers-by-state.html'}
+            ('claim.html', '0.6', None),
+            ('about.html', '0.6', None), ('methodology.html', '0.6', None),
+            ('privacy.html', '0.2', None), ('terms.html', '0.2', None)]
+    skip = {'index.html', 'account.html', 'admin.html'} | {p for p, _, _ in core}
     articles = sorted(f for f in os.listdir(OUT) if f.endswith('.html') and f not in skip
                       and not f.startswith('broker-') and not f.startswith('business-brokers-in-')
-                      and not f.startswith('google'))
+                      and not f.startswith('google') and not f.startswith('index')   # "index (3).html" etc. are junk — delete them from the repo
+                      and ' ' not in f)
     lines = ['<?xml version="1.0" encoding="UTF-8"?>', '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
     def add(path, pri, freq=None):
         cf = f'<changefreq>{freq}</changefreq>' if freq else ''
