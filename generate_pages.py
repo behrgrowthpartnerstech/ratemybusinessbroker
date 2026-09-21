@@ -37,10 +37,20 @@ def state_slug(name): return name.lower().replace(', d.c.','-dc').replace(' ','-
 
 def load_brokers():
     if '--from-supabase' in sys.argv:
-        req = urllib.request.Request(
-            SUPABASE_URL + '/rest/v1/brokers?select=id,slug,name,firm,city,state,specialty,photo,website,linkedin,logo,phone,claimed_by,bio&order=name&limit=5000',
-            headers={'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY})
-        rows = json.load(urllib.request.urlopen(req, timeout=60))
+        # Columns that only exist after later migrations are optional: fall back so a
+        # rebuild never fails just because a migration hasn't been run yet.
+        hdr = {'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY}
+        rows = None
+        for cols in ('id,slug,name,firm,city,state,specialty,photo,website,linkedin,logo,phone,claimed_by,bio',
+                     'id,slug,name,firm,city,state,specialty,photo,website,linkedin,logo,phone,claimed_by',
+                     'id,slug,name,firm,city,state,specialty,photo,website',
+                     '*'):
+            try:
+                req = urllib.request.Request(SUPABASE_URL + '/rest/v1/brokers?select=' + cols + '&order=name&limit=5000', headers=hdr)
+                rows = json.load(urllib.request.urlopen(req, timeout=60)); break
+            except Exception as e:
+                print('note: brokers select "' + cols[:40] + '…" failed (' + str(e) + '), trying a smaller column set')
+        if rows is None: raise SystemExit('could not read brokers from Supabase')
     else:
         src = sys.argv[sys.argv.index('--local')+1] if '--local' in sys.argv else 'brokers.json'
         rows = json.load(open(src))
@@ -48,10 +58,15 @@ def load_brokers():
     REVIEWS_BY, TIERS = {}, {}
     if '--from-supabase' in sys.argv:
         try:
-            rq = urllib.request.Request(SUPABASE_URL + '/rest/v1/reviews?select=broker_id,author_id,ratings,side,stage,industry,deal_size,text,created_at&status=eq.published&limit=10000',
-                                        headers={'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY})
-            for r in json.load(urllib.request.urlopen(rq, timeout=60)):
-                REVIEWS_BY.setdefault(r['broker_id'], []).append(r)
+            rv = None
+            for cols in ('broker_id,author_id,ratings,side,stage,industry,deal_size,text,created_at', 'broker_id,author_id,ratings,side,stage,text,created_at', 'broker_id,author_id,ratings,stage,text,created_at'):
+                try:
+                    rq = urllib.request.Request(SUPABASE_URL + '/rest/v1/reviews?select=' + cols + '&status=eq.published&limit=10000',
+                                                headers={'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY})
+                    rv = json.load(urllib.request.urlopen(rq, timeout=60)); break
+                except Exception: pass
+            for r in (rv or []):
+                if r.get('broker_id'): REVIEWS_BY.setdefault(r['broker_id'], []).append(r)
             pq = urllib.request.Request(SUPABASE_URL + '/rest/v1/profiles?select=id,username,tier&limit=10000',
                                         headers={'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY})
             for pr in json.load(urllib.request.urlopen(pq, timeout=60)): TIERS[pr['id']] = pr
