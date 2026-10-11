@@ -147,7 +147,7 @@ function card(b, i){
     : `<span class="conf none">${S.mode==='overall'?'Not yet rated':'No '+S.mode+' reviews'}</span><span class="rcount">${full?'Add yours':'Be the first'}</span>`;
   return `<a class="bcard ${b.claimed_by?'verified':''}" href="/broker-${esc(b.slug)}.html">
     <div class="rank ${i<3&&S.sort==='top'&&sc?'top':''}">${sc?i+1:'·'}</div>
-    ${b.photo?`<img class="avatar" src="${esc(b.photo)}" alt="" loading="lazy" onerror="this.outerHTML='<div class=&quot;avatar ph&quot;>${TBI.initials(b.name)}</div>'">`:`<div class="avatar ph">${TBI.initials(b.name)}</div>`}
+    ${b.photo?`<img class="avatar" src="${esc(b.photo)}" alt="" loading="lazy" onerror="this.outerHTML='<div class=&quot;avatar ph&quot;>${TBI.initials(b.name).replace(/[^A-Za-z]/g,'')}</div>'">`:`<div class="avatar ph">${TBI.initials(b.name).replace(/[^A-Za-z]/g,'')}</div>`}
     <div class="bmain">
       <div class="bname">${esc(b.name)}${b.claimed_by?' <span class="vpill" title="This broker has claimed and verified their profile">✓ Verified</span>':''}
         <button class="watch ${TBI.inList(b.id)?'on':''}" title="Save to My List" aria-label="Save to My List" onclick="event.preventDefault();event.stopPropagation();TBI.toggleList('${b.id}').then(ok=>ok&&render())">★</button></div>
