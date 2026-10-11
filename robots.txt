@@ -1,4 +1,8 @@
 User-agent: *
 Allow: /
+Disallow: /brokers
+Disallow: /reviews
+Disallow: /profiles
+Disallow: /rest/
 
 Sitemap: https://ratemybusinessbroker.com/sitemap.xml
