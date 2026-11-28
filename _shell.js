@@ -96,7 +96,7 @@
       + '<div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#dfa920" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></div>'
       + '<h2 id="entry-h" class="serif">Are you a prospective seller looking for the perfect broker?</h2>'
       + '<p>Take a two-minute quiz and we’ll find them for you — matched on your location, industry, and what matters most to you.</p>'
-      + '<a class="btn gold wide" href="/find-my-perfect-broker.html">Take the quiz</a>'
+      + '<a class="btn gold" href="/find-my-perfect-broker.html">Take the quiz</a>'
       + '<div class="foot"><button type="button" class="lnk" data-close style="color:var(--mut)">Not right now</button>'
       + '<a href="/claim.html">Are you a broker? Claim your page</a></div>'
       + '</div>';
